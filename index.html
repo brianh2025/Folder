@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.4 (圖示記憶版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.7 (編號修正版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -76,60 +76,64 @@
         const IconImage = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
         const IconRefresh = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
-        // --- 資料定義 ---
+        // --- 資料定義 (更新為完整清單，移除 MD 前綴) ---
         const CATEGORY_DATA = {
-            "計畫書 (P)": {
-                code: "P",
+            "MD 01設計資料": {
+                code: "01", // 原 MD01
                 subs: [
-                    { name: "監造計畫", code: "S" },
-                    { name: "整體施工及品質計畫書", code: "Q" },
-                    { name: "分項計畫書", code: "A" }
+                    { name: "A-設計預算書圖", code: "A" },
+                    { name: "B-變更資料", code: "B" },
+                    { name: "C-設計管線調查含圖資", code: "C" },
+                    { name: "D-交維計畫", code: "D" }
                 ]
             },
-            "施工抽查紀錄表 (E)": {
-                code: "E",
+            "MD 02監造執行文件": {
+                code: "02", // 原 MD02
                 subs: [
-                    { name: "測量工程", code: "A" },
-                    { name: "開挖工程", code: "B" },
-                    { name: "回填工程", code: "C" },
-                    { name: "鋼筋工程", code: "D" },
-                    { name: "模板工程", code: "E" },
-                    { name: "混凝土工程", code: "F" },
-                    { name: "臨時擋土設施工程", code: "G" },
-                    { name: "預力混凝土基樁工程", code: "H" },
-                    { name: "臨時擋抽移排水工程", code: "I" },
-                    { name: "瀝青混凝土鋪面工程", code: "J" },
-                    { name: "控制性低強度回填材料(CLSM)工程", code: "K" },
-                    { name: "植筋工程", code: "L" },
-                    { name: "混凝土塊工程", code: "M" },
-                    { name: "坡面工工程", code: "N" },
-                    { name: "安全衛生", code: "U" },
-                    { name: "環境保護", code: "V" },
-                    { name: "交維設施", code: "W" },
-                    { name: "汛期工地防災", code: "X" },
-                    { name: "材料設備送審", code: "Y" },
-                    { name: "材料設備檢驗", code: "Z" }
+                    { name: "A-公文", code: "A" },
+                    { name: "B-監造計畫", code: "B" },
+                    { name: "C-監造日報", code: "C" },
+                    { name: "D-計畫書、材料審查意見", code: "D" },
+                    { name: "D1-計劃書審查意見", code: "D1" },
+                    { name: "D2-材料審查意見", code: "D2" },
+                    { name: "E-監造施工抽查文件", code: "E" },
+                    { name: "E1-施工抽查", code: "E1" },
+                    { name: "E2-材料設施抽查", code: "E2" },
+                    { name: "E3-職業安全抽查", code: "E3" },
+                    { name: "E4-環境衛生抽查", code: "E4" },
+                    { name: "E5-交通維持抽查", code: "E5" },
+                    { name: "E6-機械設備抽查", code: "E6" },
+                    { name: "E7-機電設備抽查", code: "E7" },
+                    { name: "F-協調會暨相關會議、會勘紀錄", code: "F" },
+                    { name: "G-管線調查資料", code: "G" },
+                    { name: "G-1管線試挖", code: "G1" },
+                    { name: "G-2圖審簡報", code: "G2" },
+                    { name: "G-3各管線圖資", code: "G3" },
+                    { name: "H-不合格缺失改善資料", code: "H" },
+                    { name: "I-技師督導", code: "I" },
+                    { name: "J-督導、查核簡報", code: "J" },
+                    { name: "K-竣工結算資料", code: "K" },
+                    { name: "M-成果報告", code: "M" }
                 ]
             },
-            "進度管制 (G)": {
-                code: "G",
+            "MD 03承包商提供文件": {
+                code: "03", // 原 MD03
                 subs: [
-                    { name: "日報表", code: "D" },
-                    { name: "工務會議記錄", code: "W" }
-                ]
-            },
-            "會議紀錄 (R)": {
-                code: "R",
-                subs: [
-                    { name: "主管機關督導", code: "Q" },
-                    { name: "技師督導", code: "T" },
-                    { name: "收文", code: "T" }
-                ]
-            },
-            "缺失改善 (Q)": {
-                code: "Q",
-                subs: [
-                    { name: "不符合事項改善表", code: "A" }
+                    { name: "A-承包商計畫書", code: "A" },
+                    { name: "A-01施工計畫", code: "A01" },
+                    { name: "A-02品質計畫", code: "A02" },
+                    { name: "A-03職業安全衛生計畫", code: "A03" },
+                    { name: "A-04交維計畫", code: "A04" },
+                    { name: "A-05防災減災計畫", code: "A05" },
+                    { name: "A-06各分項計劃增列", code: "A06" },
+                    { name: "B-材料送審資料", code: "B" },
+                    { name: "B-01鋼筋材料", code: "B01" },
+                    { name: "B-02混凝土材料", code: "B02" },
+                    { name: "B-03鋼筋混凝土管材料", code: "B03" },
+                    { name: "B-04可控制性低強回填材料", code: "B04" },
+                    { name: "B-05依據不同材料增列", code: "B05" },
+                    { name: "C-承包商施工日誌", code: "C" },
+                    { name: "D-估驗計價資料", code: "D" }
                 ]
             }
         };
@@ -139,16 +143,16 @@
             hostName: '交通部高速公路局',
             projectName: '國道1號增設銜接台74線系統交流道工程',
             caseNumber: '案號：112-001',
-            folderNumber: 'P-S-01-001',
+            folderNumber: 'RT112-001-02B01001', // 更新範例編號
             unitName: '工務部',
-            category: '監造計畫',
+            category: 'B-監造計畫',
             fileName: '第一版',
-            spineWidth: 45, // mm (標籤寬度)
-            spineHeight: 185, // mm (標籤高度)
+            spineWidth: 45, // mm
+            spineHeight: 185, // mm
             unitIcon: null,
             hostIcon: null, 
-            selectedMainCat: "計畫書 (P)",
-            selectedSubCat: "監造計畫",
+            selectedMainCat: "MD 02監造執行文件",
+            selectedSubCat: "B-監造計畫",
             
             // --- 字體大小 (px) ---
             hostNameFontSize: 22,
@@ -167,9 +171,9 @@
         const App = () => {
             const [labels, setLabels] = useState([
                 { ...DEFAULT_DATA, id: 0 },
-                { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-01-002' },
-                { ...DEFAULT_DATA, id: 2, folderNumber: 'P-S-01-003' },
-                { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-01-004' }
+                { ...DEFAULT_DATA, id: 1, folderNumber: 'RT112-001-02B01002' },
+                { ...DEFAULT_DATA, id: 2, folderNumber: 'RT112-001-02B01003' },
+                { ...DEFAULT_DATA, id: 3, folderNumber: 'RT112-001-02B01004' }
             ]);
             
             const [activeTab, setActiveTab] = useState(0); 
@@ -224,6 +228,13 @@
                 updateLabel(activeTab, name, value);
             };
 
+            // 提取案號中的數字部分
+            const extractCaseNo = (str) => {
+                if (!str) return "";
+                const match = str.match(/[0-9-]+/);
+                return match ? match[0] : str;
+            };
+
             const handleCategoryChange = (mainCat, subCat) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
@@ -238,13 +249,12 @@
                     
                     lbl.category = subCat;
 
-                    const newPrefix = `${mainCode}-${subCode}-`;
-                    const parts = lbl.folderNumber.split('-');
-                    let suffix = '01-001';
-                    if (parts.length >= 3) {
-                        suffix = parts.slice(2).join('-');
-                    }
-                    lbl.folderNumber = `${newPrefix}${suffix}`;
+                    // 新的編號規則：RT[案號]-[主類代碼][次類代碼][流水號]
+                    const caseNoCore = extractCaseNo(lbl.caseNumber) || "000-000";
+                    const categoryPart = `${mainCode}${subCode}`; 
+                    let serial = "01001";
+                    
+                    lbl.folderNumber = `RT${caseNoCore}-${categoryPart}${serial}`;
                 }
                 setLabels(newLabels);
             };
@@ -509,7 +519,7 @@
                                 <IconFileText />
                                 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.4 (圖示記憶版)</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.7 (編號修正版)</p>
                         </div>
 
                         {/* 標籤切換分頁 */}
@@ -670,7 +680,7 @@
                             {/* 卷宗詳細資訊 */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-semibold text-slate-700">卷宗編號</label>
+                                    <label className="text-sm font-semibold text-slate-700">卷宗編號 (自動依規則產生)</label>
                                     <input
                                         type="text"
                                         name="folderNumber"
