@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V1.5 (多標籤版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -49,6 +49,8 @@
         const IconPrinter = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
         const IconCloud = ({size=20}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>;
         const IconLayout = ({size=18}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>;
+        const IconGrid = ({size=18}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>;
+        const IconCopy = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
 
         // --- 資料定義 ---
         const CATEGORY_DATA = {
@@ -108,25 +110,39 @@
             }
         };
 
-        const App = () => {
-            const [formData, setFormData] = useState({
-                projectName: '',
-                folderNumber: 'P-S-01-001',
-                unitName: '工務部',
-                category: '監造計畫',
-                fileName: '第一版',
-                spineWidth: 45, // 寬 4.5 cm
-                spineHeight: 85, // 長 8.5 cm
-                fontSize: 16, // 字體稍微縮小以適應較小的標籤
-            });
+        const DEFAULT_DATA = {
+            hostName: '交通部高速公路局',
+            projectName: '國道1號增設銜接台74線系統交流道工程',
+            folderNumber: 'P-S-01-001',
+            unitName: '工務部',
+            category: '監造計畫',
+            fileName: '第一版',
+            spineWidth: 45, // mm
+            spineHeight: 85, // mm
+            fontSize: 14,
+            unitIcon: null,
+            selectedMainCat: "計畫書 (P)",
+            selectedSubCat: "監造計畫"
+        };
 
-            const [selectedMainCat, setSelectedMainCat] = useState("計畫書 (P)");
-            const [selectedSubCat, setSelectedSubCat] = useState("監造計畫");
-            const [unitIcon, setUnitIcon] = useState(null);
+        const App = () => {
+            // 狀態改為陣列，儲存 4 個標籤的資料
+            const [labels, setLabels] = useState([
+                { ...DEFAULT_DATA, id: 0 },
+                { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-01-002' }, // 預設不一樣的編號
+                { ...DEFAULT_DATA, id: 2, folderNumber: 'P-S-01-003' },
+                { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-01-004' }
+            ]);
+            
+            const [activeTab, setActiveTab] = useState(0); // 當前編輯哪一個標籤 (0-3)
             const [history, setHistory] = useState([]);
             const [isSaving, setIsSaving] = useState(false);
             const [libsLoaded, setLibsLoaded] = useState(false);
+            const [printMode, setPrintMode] = useState('4-up'); // 預設 4-up
             const printRef = useRef(null);
+
+            // 取得當前編輯的標籤資料 (捷徑)
+            const activeLabel = labels[activeTab];
 
             useEffect(() => {
                 const savedHistory = localStorage.getItem('projectHistory');
@@ -134,7 +150,6 @@
                     setHistory(JSON.parse(savedHistory));
                 }
                 
-                // 檢查 PDF 函式庫是否載入
                 if (window.jspdf && window.html2canvas) {
                     setLibsLoaded(true);
                 } else {
@@ -147,28 +162,43 @@
                 }
             }, []);
 
-            useEffect(() => {
-                if (selectedMainCat && selectedSubCat && CATEGORY_DATA[selectedMainCat]) {
-                    const mainCode = CATEGORY_DATA[selectedMainCat].code;
-                    const subObj = CATEGORY_DATA[selectedMainCat].subs.find(s => s.name === selectedSubCat);
+            // 更新特定標籤的欄位
+            const updateLabel = (index, field, value) => {
+                setLabels(prev => prev.map((lbl, i) => {
+                    if (i !== index) return lbl;
+                    return { ...lbl, [field]: value };
+                }));
+            };
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                updateLabel(activeTab, name, value);
+            };
+
+            // 處理分類選擇變更 (包含連動邏輯)
+            const handleCategoryChange = (mainCat, subCat) => {
+                const newLabels = [...labels];
+                const lbl = newLabels[activeTab];
+
+                lbl.selectedMainCat = mainCat;
+                lbl.selectedSubCat = subCat;
+
+                if (mainCat && subCat && CATEGORY_DATA[mainCat]) {
+                    const mainCode = CATEGORY_DATA[mainCat].code;
+                    const subObj = CATEGORY_DATA[mainCat].subs.find(s => s.name === subCat);
                     const subCode = subObj ? subObj.code : '';
                     
-                    setFormData(prev => ({ ...prev, category: selectedSubCat }));
+                    lbl.category = subCat;
 
                     const newPrefix = `${mainCode}-${subCode}-`;
-                    const parts = formData.folderNumber.split('-');
+                    const parts = lbl.folderNumber.split('-');
                     let suffix = '01-001';
                     if (parts.length >= 3) {
                         suffix = parts.slice(2).join('-');
                     }
-                    
-                    setFormData(prev => ({ ...prev, folderNumber: `${newPrefix}${suffix}` }));
+                    lbl.folderNumber = `${newPrefix}${suffix}`;
                 }
-            }, [selectedMainCat, selectedSubCat]);
-
-            const handleInputChange = (e) => {
-                const { name, value } = e.target;
-                setFormData(prev => ({ ...prev, [name]: value }));
+                setLabels(newLabels);
             };
 
             const handleImageUpload = (e) => {
@@ -176,15 +206,29 @@
                 if (file) {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        setUnitIcon(reader.result);
+                        updateLabel(activeTab, 'unitIcon', reader.result);
                     };
                     reader.readAsDataURL(file);
                 }
             };
 
+            // 複製第一張標籤的內容到其他所有標籤
+            const copyFirstToAll = () => {
+                if (!confirm("確定要將「標籤 1」的內容複製到其他所有標籤嗎？\n(這將覆蓋其他標籤目前的設定)")) return;
+                
+                const source = labels[0];
+                setLabels(prev => prev.map((lbl, i) => {
+                    if (i === 0) return lbl;
+                    // 複製所有欄位，但保留原本的 ID
+                    // 也可以選擇保留某些欄位不複製(如編號)，但全複製最直覺，使用者再改編號即可
+                    return { ...source, id: i }; 
+                }));
+                alert("已複製完成！您可以切換分頁修改各標籤的編號。");
+            };
+
             const saveToHistory = () => {
-                if (!formData.projectName.trim()) return;
-                const newHistory = [...new Set([formData.projectName, ...history])].slice(0, 10);
+                if (!activeLabel.projectName.trim()) return;
+                const newHistory = [...new Set([activeLabel.projectName, ...history])].slice(0, 10);
                 setHistory(newHistory);
                 localStorage.setItem('projectHistory', JSON.stringify(newHistory));
             };
@@ -206,7 +250,8 @@
                     const html2canvas = window.html2canvas;
                     const { jsPDF } = window.jspdf;
 
-                    // 1. 捕捉畫面
+                    // 1. 捕捉整個 A4 預覽區域
+                    // 這樣無論是單張模式還是四張模式，我們都是"所見即所得"
                     const canvas = await html2canvas(printRef.current, {
                         scale: 3, // 提高解析度
                         useCORS: true,
@@ -221,19 +266,12 @@
                     const pdfWidth = pdf.internal.pageSize.getWidth(); // 210
                     const pdfHeight = pdf.internal.pageSize.getHeight(); // 297
                     
-                    // 3. 使用自訂的尺寸輸出 (不強制縮放至滿版)
-                    // formData 內的單位是 mm，jsPDF 預設也是 mm，直接使用
-                    const printWidth = formData.spineWidth;
-                    const printHeight = formData.spineHeight;
-
-                    // 4. 居中放置
-                    const x = (pdfWidth - printWidth) / 2;
-                    const y = (pdfHeight - printHeight) / 2;
-
-                    pdf.addImage(imgData, 'PNG', x, y, printWidth, printHeight);
+                    // 3. 直接將捕捉到的 A4 圖片貼上去
+                    // 因為預覽區本身就是模擬 A4 比例，所以直接滿版貼上即可
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
                     if (action === 'download') {
-                        pdf.save(`${formData.projectName}-${formData.folderNumber}-標籤.pdf`);
+                        pdf.save(`${activeLabel.projectName}-標籤列印.pdf`);
                     } else if (action === 'drive') {
                         await uploadToGoogleDrive(pdf);
                     }
@@ -249,27 +287,126 @@
             const uploadToGoogleDrive = async (pdfDoc) => {
                 alert(`
                 【Google Drive 同步模擬】
-                系統已準備好將 "${formData.projectName}-${formData.folderNumber}.pdf" 上傳。
+                系統已準備好將檔案上傳。
                 由於安全限制，請在下載 PDF 後手動拖入您的 Google 共用雲端硬碟。
                 `);
-                pdfDoc.save(`${formData.projectName}-Drive備份.pdf`);
+                pdfDoc.save(`${activeLabel.projectName}-Drive備份.pdf`);
             };
+
+            // 書背渲染組件 (可重複使用)
+            const SpineLabel = ({ data }) => (
+                <div 
+                    className="border-2 border-black flex flex-col items-center justify-between text-center relative bg-white overflow-hidden shadow-sm"
+                    style={{
+                        width: `${data.spineWidth}mm`,
+                        height: `${data.spineHeight}mm`,
+                        padding: '2mm 1mm',
+                        // 確保列印時邊框清晰
+                        boxSizing: 'border-box'
+                    }}
+                >
+                    {/* 1. 最上方：主辦單位 */}
+                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-1 mb-1 min-h-[12%]">
+                        <h3 className="font-bold w-full break-words leading-tight" style={{ fontSize: `${data.fontSize * 0.7}px` }}>
+                            {data.hostName}
+                        </h3>
+                    </div>
+
+                    {/* 2. 上方：工程名稱 */}
+                    <div className="w-full flex flex-col justify-center items-center border-b-2 border-black pb-2 mb-2 min-h-[18%]">
+                        <h3 className="font-bold w-full break-words leading-tight" style={{ fontSize: `${data.fontSize * 0.75}px` }}>
+                            {data.projectName}
+                        </h3>
+                    </div>
+
+                    {/* 3. 中間：核心資訊 */}
+                    <div className="flex-1 w-full flex flex-col items-center justify-between py-1">
+                        <div className="flex flex-col items-center gap-2 flex-grow justify-center">
+                            <div 
+                                className="writing-vertical-lr font-black tracking-widest border-2 border-black py-2 px-1 rounded flex items-center justify-center"
+                                style={{ fontSize: `${data.fontSize}px` }}
+                            >
+                                {data.category}
+                            </div>
+                            
+                            <div 
+                                className="font-bold writing-vertical-lr tracking-wider text-slate-800"
+                                style={{ fontSize: `${data.fontSize * 0.85}px` }}
+                            >
+                                {data.fileName}
+                            </div>
+                        </div>
+
+                        <div className="font-mono font-bold w-full text-center mt-2" style={{ fontSize: `${data.fontSize * 0.7}px` }}>
+                            {data.folderNumber}
+                        </div>
+                    </div>
+
+                    {/* 4. 下方：單位資訊 */}
+                    <div className="w-full flex flex-col justify-start items-center border-t-2 border-black pt-1 mt-1 min-h-[15%]">
+                        <h4 className="font-bold mb-1" style={{ fontSize: `${data.fontSize * 0.7}px` }}>{data.unitName}</h4>
+                        {data.unitIcon && (
+                            <img src={data.unitIcon} alt="Logo" className="w-8 h-8 object-contain" />
+                        )}
+                    </div>
+                </div>
+            );
 
             return (
                 <div className="min-h-screen font-sans text-slate-800 flex flex-col md:flex-row">
                     {/* 左側：控制面板 */}
                     <div className="w-full md:w-1/3 bg-white shadow-xl p-6 overflow-y-auto h-screen z-10 no-print">
-                        <div className="mb-8 border-b pb-4">
+                        <div className="mb-4 border-b pb-4">
                             <h1 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
                                 <IconFileText />
                                 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V1.2 (標籤版)</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V1.5 (多標籤版)</p>
                         </div>
 
-                        <div className="space-y-6">
+                        {/* 標籤切換分頁 */}
+                        <div className="flex gap-1 mb-4 border-b border-slate-200 pb-1 overflow-x-auto">
+                            {labels.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveTab(idx)}
+                                    className={`px-4 py-2 text-sm font-bold rounded-t-lg transition whitespace-nowrap ${
+                                        activeTab === idx 
+                                        ? 'bg-blue-600 text-white shadow-md' 
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    }`}
+                                >
+                                    標籤 {idx + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs text-slate-400">正在編輯: 標籤 {activeTab + 1}</span>
+                            <button 
+                                onClick={copyFirstToAll}
+                                className="text-xs flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100 transition"
+                                title="將標籤 1 的所有內容複製到其他 3 張標籤"
+                            >
+                                <IconCopy size={12} /> 複製標籤1到全部
+                            </button>
+                        </div>
+
+                        <div className="space-y-6 pb-20">
                             
-                            {/* 1. 工程名稱 */}
+                            {/* 主辦單位 */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">主辦單位名稱</label>
+                                <input
+                                    type="text"
+                                    name="hostName"
+                                    value={activeLabel.hostName}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+
+                            {/* 工程名稱 */}
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-700 flex justify-between">
                                     工程名稱
@@ -283,7 +420,7 @@
                                     <input
                                         type="text"
                                         name="projectName"
-                                        value={formData.projectName}
+                                        value={activeLabel.projectName}
                                         onChange={handleInputChange}
                                         list="project-history"
                                         placeholder="輸入或選擇工程名稱"
@@ -297,7 +434,7 @@
                                 </div>
                             </div>
 
-                            {/* 2. 標準分類系統 */}
+                            {/* 分類系統 */}
                             <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 space-y-4">
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="text-blue-600"><IconFolderOpen /></div>
@@ -306,14 +443,13 @@
                                 
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">總分類 (Main Category)</label>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">總分類</label>
                                         <select
-                                            value={selectedMainCat}
+                                            value={activeLabel.selectedMainCat}
                                             onChange={(e) => {
-                                                setSelectedMainCat(e.target.value);
-                                                if (CATEGORY_DATA[e.target.value]) {
-                                                    setSelectedSubCat(CATEGORY_DATA[e.target.value].subs[0].name);
-                                                }
+                                                const val = e.target.value;
+                                                const sub = CATEGORY_DATA[val] ? CATEGORY_DATA[val].subs[0].name : '';
+                                                handleCategoryChange(val, sub);
                                             }}
                                             className="w-full p-2 border border-blue-200 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
                                         >
@@ -324,13 +460,13 @@
                                     </div>
                                     
                                     <div>
-                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">次分類 (Sub Category)</label>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">次分類</label>
                                         <select
-                                            value={selectedSubCat}
-                                            onChange={(e) => setSelectedSubCat(e.target.value)}
+                                            value={activeLabel.selectedSubCat}
+                                            onChange={(e) => handleCategoryChange(activeLabel.selectedMainCat, e.target.value)}
                                             className="w-full p-2 border border-blue-200 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
                                         >
-                                            {selectedMainCat && CATEGORY_DATA[selectedMainCat] && CATEGORY_DATA[selectedMainCat].subs.map(sub => (
+                                            {activeLabel.selectedMainCat && CATEGORY_DATA[activeLabel.selectedMainCat] && CATEGORY_DATA[activeLabel.selectedMainCat].subs.map(sub => (
                                                 <option key={sub.name} value={sub.name}>
                                                     {sub.name} ({sub.code})
                                                 </option>
@@ -340,17 +476,14 @@
                                 </div>
                             </div>
 
-                            {/* 3. 卷宗詳細資訊 */}
+                            {/* 卷宗詳細資訊 */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2 col-span-2">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-                                        <span>卷宗編號</span>
-                                        <span className="text-xs text-slate-400 font-normal">格式：主-次-版次-流水號</span>
-                                    </label>
+                                    <label className="text-sm font-semibold text-slate-700">卷宗編號</label>
                                     <input
                                         type="text"
                                         name="folderNumber"
-                                        value={formData.folderNumber}
+                                        value={activeLabel.folderNumber}
                                         onChange={handleInputChange}
                                         className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono tracking-wide"
                                     />
@@ -362,10 +495,9 @@
                                 <input
                                     type="text"
                                     name="fileName"
-                                    value={formData.fileName}
+                                    value={activeLabel.fileName}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="例如：第一版、114年9月"
                                 />
                             </div>
 
@@ -374,13 +506,13 @@
                                 <input
                                     type="text"
                                     name="unitName"
-                                    value={formData.unitName}
+                                    value={activeLabel.unitName}
                                     onChange={handleInputChange}
                                     className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
                             </div>
 
-                            {/* 4. 外觀設定 */}
+                            {/* 外觀設定 */}
                             <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4 mt-2">
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="text-slate-500"><IconSettings /></div>
@@ -393,8 +525,8 @@
                                         <input
                                             type="number"
                                             name="spineWidth"
-                                            value={formData.spineWidth}
-                                            onChange={(e) => setFormData({...formData, spineWidth: Number(e.target.value)})}
+                                            value={activeLabel.spineWidth}
+                                            onChange={(e) => updateLabel(activeTab, 'spineWidth', Number(e.target.value))}
                                             className="w-full p-2 border rounded text-sm"
                                         />
                                     </div>
@@ -403,10 +535,9 @@
                                         <input
                                             type="number"
                                             name="spineHeight"
-                                            value={formData.spineHeight}
-                                            onChange={(e) => setFormData({...formData, spineHeight: Number(e.target.value)})}
+                                            value={activeLabel.spineHeight}
+                                            onChange={(e) => updateLabel(activeTab, 'spineHeight', Number(e.target.value))}
                                             className="w-full p-2 border rounded text-sm"
-                                            placeholder="預設 260"
                                         />
                                     </div>
                                 </div>
@@ -418,8 +549,8 @@
                                             type="range" 
                                             min="12" 
                                             max="48" 
-                                            value={formData.fontSize}
-                                            onChange={(e) => setFormData({...formData, fontSize: Number(e.target.value)})}
+                                            value={activeLabel.fontSize}
+                                            onChange={(e) => updateLabel(activeTab, 'fontSize', Number(e.target.value))}
                                             className="w-full h-8 cursor-pointer"
                                         />
                                     </div>
@@ -432,96 +563,90 @@
                                             <div className="flex items-center gap-2"><IconUpload /> 選擇圖片</div>
                                             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                                         </label>
-                                        {unitIcon && (
-                                            <button onClick={() => setUnitIcon(null)} className="text-xs text-red-500 hover:underline">移除</button>
+                                        {activeLabel.unitIcon && (
+                                            <button onClick={() => updateLabel(activeTab, 'unitIcon', null)} className="text-xs text-red-500 hover:underline">移除</button>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* 按鈕區 */}
-                            <div className="pt-4 flex flex-col gap-3">
-                                <button 
-                                    onClick={() => generatePDF('download')}
-                                    disabled={isSaving || !libsLoaded}
-                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg flex items-center justify-center gap-2 transition font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isSaving ? '處理中...' : !libsLoaded ? '載入元件中...' : <><IconPrinter /> 下載 PDF (列印用)</>}
-                                </button>
-                            </div>
                         </div>
                     </div>
 
                     {/* 右側：預覽區 */}
-                    <div className="w-full md:w-2/3 bg-slate-200 p-8 flex items-center justify-center overflow-auto">
-                        <div className="flex flex-col items-center">
-                            <h2 className="text-slate-500 font-medium mb-4 flex items-center gap-2 no-print">
-                                <IconLayout size={18} /> A4 預覽效果 (實際列印會居中)
+                    <div className="w-full md:w-2/3 bg-slate-200 p-8 flex flex-col items-center justify-start overflow-auto">
+                        
+                        <div className="w-full max-w-[210mm] flex justify-between items-center mb-4 no-print">
+                            <h2 className="text-slate-500 font-medium flex items-center gap-2">
+                                <IconLayout size={18} /> A4 預覽效果 (實際列印區域)
                             </h2>
-                            
-                            {/* A4 畫布 (模擬) */}
-                            <div 
-                                className="bg-white shadow-2xl relative overflow-hidden"
-                                style={{
-                                    width: '210mm',
-                                    height: '297mm',
-                                    transform: 'scale(0.8)',
-                                    transformOrigin: 'top center'
-                                }}
-                            >
-                                {/* 可列印區域 */}
-                                <div 
-                                    className="w-full h-full p-8 flex justify-center items-center bg-white"
+
+                            {/* 切換顯示模式 */}
+                            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1 flex">
+                                <button
+                                    onClick={() => setPrintMode('single')}
+                                    className={`px-3 py-1 text-sm rounded flex items-center gap-1 ${printMode === 'single' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
                                 >
-                                    {/* 書背本體 - 這裡是被截圖的區域 */}
-                                    <div 
-                                        ref={printRef}
-                                        className="border-2 border-black flex flex-col items-center justify-between text-center relative bg-white"
-                                        style={{
-                                            width: `${formData.spineWidth}mm`,
-                                            height: `${formData.spineHeight}mm`,
-                                            padding: '5mm 2mm'
-                                        }}
-                                    >
-                                        {/* 上方：工程名稱區塊 */}
-                                        <div className="flex-1 w-full flex flex-col justify-start items-center border-b-2 border-black pb-2 mb-2 overflow-hidden">
-                                            <h3 className="font-bold mb-1 w-full break-words leading-tight" style={{ fontSize: `${formData.fontSize * 0.7}px` }}>
-                                                {formData.projectName || '工程名稱'}
-                                            </h3>
-                                        </div>
-
-                                        {/* 中間：核心資訊 */}
-                                        <div className="flex-[4] w-full flex flex-col items-center justify-center gap-2">
-                                            <div 
-                                                className="writing-vertical-lr font-black tracking-widest border-2 border-black py-2 px-1 rounded flex items-center justify-center"
-                                                style={{ fontSize: `${formData.fontSize}px` }}
-                                            >
-                                                {formData.category}
-                                            </div>
-                                            
-                                            <div 
-                                                className="font-bold writing-vertical-lr tracking-wider text-slate-800"
-                                                style={{ fontSize: `${formData.fontSize * 0.8}px` }}
-                                            >
-                                                {formData.fileName}
-                                            </div>
-
-                                            <div className="font-mono font-bold border-t-2 border-b-2 border-black py-1 w-full text-center" style={{ fontSize: `${formData.fontSize * 0.7}px` }}>
-                                                {formData.folderNumber}
-                                            </div>
-                                        </div>
-
-                                        {/* 下方：單位資訊 */}
-                                        <div className="flex-1 w-full flex flex-col justify-end items-center border-t-2 border-black pt-2 mt-2">
-                                            {unitIcon ? (
-                                                <img src={unitIcon} alt="Logo" className="w-10 h-10 object-contain mb-1" />
-                                            ) : null}
-                                            <h4 className="font-bold" style={{ fontSize: `${formData.fontSize * 0.6}px` }}>{formData.unitName}</h4>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <IconLayout size={14} /> 單張居中
+                                </button>
+                                <button
+                                    onClick={() => setPrintMode('4-up')}
+                                    className={`px-3 py-1 text-sm rounded flex items-center gap-1 ${printMode === '4-up' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    <IconGrid size={14} /> 一頁四張
+                                </button>
                             </div>
                         </div>
+
+                        {/* A4 畫布 (模擬) */}
+                        <div 
+                            className="bg-white shadow-2xl relative overflow-hidden origin-top"
+                            style={{
+                                width: '210mm',
+                                height: '297mm',
+                                transform: 'scale(0.8)', // 縮放以適應螢幕
+                                minHeight: '297mm' // 確保高度足夠
+                            }}
+                        >
+                            {/* 可列印區域 (A4) */}
+                            <div 
+                                ref={printRef} 
+                                className="w-full h-full bg-white relative"
+                            >
+                                {printMode === 'single' ? (
+                                    // 模式一：單張居中 (只顯示當前編輯的標籤)
+                                    <div className="w-full h-full flex justify-center items-center">
+                                        <SpineLabel data={activeLabel} />
+                                    </div>
+                                ) : (
+                                    // 模式二：一頁四張 (水平排列)
+                                    <div className="w-full h-full flex justify-center items-center">
+                                        <div className="flex gap-0 items-center justify-center">
+                                            {labels.map((lbl, idx) => (
+                                                <SpineLabel key={lbl.id} data={lbl} />
+                                            ))}
+                                        </div>
+                                        
+                                        {/* 輔助說明：這條線不會印出來，僅在預覽顯示 */}
+                                        <div className="absolute bottom-10 left-0 w-full text-center text-slate-300 text-xs no-print">
+                                            系統自動水平置中排列 4 張標籤
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 下載按鈕 (放在右側下方浮動或固定位置) */}
+                        <div className="mt-8 flex gap-3 no-print z-50">
+                             <button 
+                                onClick={() => generatePDF('download')}
+                                disabled={isSaving || !libsLoaded}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 transition font-bold text-lg disabled:opacity-50"
+                            >
+                                {isSaving ? '處理中...' : <><IconPrinter /> 下載 PDF</>}
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             );
