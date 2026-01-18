@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.1 (客製化數值版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.4 (圖示記憶版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -48,7 +48,11 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8; 
         }
-        body { font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; }
+        /* 字體設定：優先使用標楷體 */
+        body { 
+            font-family: "BiauKai", "DFKai-SB", "KaiTi", "Microsoft JhengHei", serif; 
+            font-weight: bold; /* 標楷體通常較細，加粗以利列印 */
+        }
     </style>
 </head>
 <body class="bg-slate-100">
@@ -131,7 +135,6 @@
         };
 
         // --- 預設值設定 (DEFAULT_DATA) ---
-        // 如果您需要修改預設值，請直接修改下方的數值
         const DEFAULT_DATA = {
             hostName: '交通部高速公路局',
             projectName: '國道1號增設銜接台74線系統交流道工程',
@@ -148,22 +151,20 @@
             selectedSubCat: "監造計畫",
             
             // --- 字體大小 (px) ---
-            // 這些數值是針對 45x185mm 標籤的最佳化設定
-            hostNameFontSize: 22,        // 主辦單位
-            projectNameFontSize: 22,     // 工程名稱
-            caseNumberFontSize: 14,      // 案號
-            categoryFontSize: 24,        // 中間分類大字
-            fileNameFontSize: 20,        // 卷宗名稱
-            folderNumberFontSize: 18,    // 卷宗編號
-            unitNameFontSize: 16,        // 單位名稱
+            hostNameFontSize: 22,
+            projectNameFontSize: 22,
+            caseNumberFontSize: 14,
+            categoryFontSize: 24,
+            fileNameFontSize: 20,
+            folderNumberFontSize: 18,
+            unitNameFontSize: 16,
             
             // --- 圖片大小 (px) ---
-            unitIconSize: 60,            // 單位圖示
-            hostIconSize: 60,            // 主辦單位 Logo
+            unitIconSize: 60,
+            hostIconSize: 60,
         };
 
         const App = () => {
-            // 狀態改為陣列，儲存 4 個標籤的資料
             const [labels, setLabels] = useState([
                 { ...DEFAULT_DATA, id: 0 },
                 { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-01-002' },
@@ -171,20 +172,32 @@
                 { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-01-004' }
             ]);
             
-            const [activeTab, setActiveTab] = useState(0); // 當前編輯哪一個標籤 (0-3)
+            const [activeTab, setActiveTab] = useState(0); 
             const [history, setHistory] = useState([]);
             const [isSaving, setIsSaving] = useState(false);
             const [libsLoaded, setLibsLoaded] = useState(false);
-            const [printMode, setPrintMode] = useState('4-up'); // 預設 4-up
+            const [printMode, setPrintMode] = useState('4-up'); 
             const printRef = useRef(null);
 
-            // 取得當前編輯的標籤資料 (捷徑)
             const activeLabel = labels[activeTab];
 
+            // 載入歷史紀錄和預設圖片
             useEffect(() => {
                 const savedHistory = localStorage.getItem('projectHistory');
                 if (savedHistory) {
                     setHistory(JSON.parse(savedHistory));
+                }
+                
+                // 載入預設圖片
+                const savedHostIcon = localStorage.getItem('defaultHostIcon');
+                const savedUnitIcon = localStorage.getItem('defaultUnitIcon');
+                
+                if (savedHostIcon || savedUnitIcon) {
+                    setLabels(prev => prev.map(lbl => ({
+                        ...lbl,
+                        hostIcon: savedHostIcon || lbl.hostIcon,
+                        unitIcon: savedUnitIcon || lbl.unitIcon
+                    })));
                 }
                 
                 if (window.jspdf && window.html2canvas) {
@@ -199,7 +212,6 @@
                 }
             }, []);
 
-            // 更新特定標籤的欄位
             const updateLabel = (index, field, value) => {
                 setLabels(prev => prev.map((lbl, i) => {
                     if (i !== index) return lbl;
@@ -212,7 +224,6 @@
                 updateLabel(activeTab, name, value);
             };
 
-            // 處理分類選擇變更 (包含連動邏輯)
             const handleCategoryChange = (mainCat, subCat) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
@@ -244,9 +255,27 @@
                 if (file) {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        updateLabel(activeTab, name, reader.result); // name 會是 'unitIcon' 或 'hostIcon'
+                        const result = reader.result;
+                        updateLabel(activeTab, name, result); 
+                        
+                        // 自動儲存到 LocalStorage
+                        if (name === 'hostIcon') {
+                            localStorage.setItem('defaultHostIcon', result);
+                        } else if (name === 'unitIcon') {
+                            localStorage.setItem('defaultUnitIcon', result);
+                        }
                     };
                     reader.readAsDataURL(file);
+                }
+            };
+            
+            // 移除圖片並清除記憶
+            const handleRemoveImage = (name) => {
+                updateLabel(activeTab, name, null);
+                if (name === 'hostIcon') {
+                    localStorage.removeItem('defaultHostIcon');
+                } else if (name === 'unitIcon') {
+                    localStorage.removeItem('defaultUnitIcon');
                 }
             };
 
@@ -264,14 +293,16 @@
             const resetToDefaults = () => {
                 if (!confirm("確定要重置目前標籤的所有設定為預設值嗎？")) return;
                 
-                // 保留當前 ID 與 卷宗編號差異，其餘重置
                 const currentId = activeLabel.id;
-                const currentFolderNum = activeLabel.folderNumber; // 選擇性保留編號
+                const currentFolderNum = activeLabel.folderNumber;
                 
                 const newLabel = { 
                     ...DEFAULT_DATA, 
                     id: currentId,
-                    folderNumber: currentFolderNum // 保留編號避免重打
+                    folderNumber: currentFolderNum,
+                    // 保持已載入的預設圖片
+                    hostIcon: localStorage.getItem('defaultHostIcon') || null,
+                    unitIcon: localStorage.getItem('defaultUnitIcon') || null,
                 };
                 
                 setLabels(prev => prev.map((lbl, i) => {
@@ -394,9 +425,10 @@
 
                     {/* 3. 中間：核心資訊 */}
                     <div className="flex-1 w-full flex flex-col items-center justify-between">
-                        <div className="flex flex-col items-center gap-2 flex-grow justify-center py-2">
+                        {/* 調整：justify-start (靠上對齊) + pt-2 (上方留白) */}
+                        <div className="flex flex-col items-center gap-2 flex-grow justify-start py-2 pt-2">
                             <div 
-                                className="writing-vertical-lr font-black tracking-widest border-2 border-black py-2 px-1 rounded flex items-center justify-center whitespace-pre-wrap"
+                                className="writing-vertical-lr font-black tracking-widest py-2 px-1 flex items-center justify-center whitespace-pre-wrap"
                                 style={{ fontSize: `${data.categoryFontSize}px` }}
                             >
                                 {data.category}
@@ -459,7 +491,7 @@
                             <input type="file" accept="image/*" name={name} className="hidden" onChange={handleImageUpload} />
                         </label>
                         {iconValue && (
-                            <button onClick={() => updateLabel(activeTab, name, null)} className="text-xs text-red-500 hover:underline w-16 text-center">移除</button>
+                            <button onClick={() => handleRemoveImage(name)} className="text-xs text-red-500 hover:underline w-16 text-center">移除</button>
                         )}
                     </div>
                     {iconValue && (
@@ -477,7 +509,7 @@
                                 <IconFileText />
                                 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.1 (客製化數值版)</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.4 (圖示記憶版)</p>
                         </div>
 
                         {/* 標籤切換分頁 */}
@@ -618,6 +650,19 @@
                                                 </option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    {/* 新增：中間分類內容編輯 */}
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">中間分類內容 (可換行)</label>
+                                        <textarea
+                                            name="category"
+                                            value={activeLabel.category}
+                                            onChange={handleInputChange}
+                                            rows="2"
+                                            className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none resize-none"
+                                            placeholder="可手動修改或換行..."
+                                        />
                                     </div>
                                 </div>
                             </div>
