@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V1.6 (進階排版版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V1.7 (版面調整版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -130,6 +130,7 @@
         const DEFAULT_DATA = {
             hostName: '交通部高速公路局',
             projectName: '國道1號增設銜接台74線系統交流道工程',
+            caseNumber: '案號：112-001', // 新增案號預設值
             folderNumber: 'P-S-01-001',
             unitName: '工務部',
             category: '監造計畫',
@@ -143,6 +144,7 @@
             // 字體大小設定 (pt/px)
             hostNameFontSize: 12,
             projectNameFontSize: 14,
+            caseNumberFontSize: 12, // 新增案號字體
             categoryFontSize: 24,
             fileNameFontSize: 18,
             folderNumberFontSize: 12,
@@ -333,16 +335,30 @@
                         </h3>
                     </div>
 
-                    {/* 2. 上方：工程名稱 */}
-                    <div className="w-full flex flex-col justify-center items-center border-b-2 border-black pb-2 mb-2 min-h-[18%]">
-                        <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap" style={{ fontSize: `${data.projectNameFontSize}px` }}>
-                            {data.projectName}
-                        </h3>
+                    {/* 2. 上方：工程名稱 + 案號區塊 */}
+                    <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
+                        <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
+                            <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
+                                {data.projectName}
+                            </h3>
+                        </div>
+                        
+                        {/* 案號與橫線 */}
+                        {data.caseNumber && (
+                            <>
+                                <div className="w-full border-t-2 border-black"></div>
+                                <div className="w-full py-1 text-center">
+                                    <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap" style={{ fontSize: `${data.caseNumberFontSize}px` }}>
+                                        {data.caseNumber}
+                                    </h3>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* 3. 中間：核心資訊 */}
-                    <div className="flex-1 w-full flex flex-col items-center justify-between py-1">
-                        <div className="flex flex-col items-center gap-2 flex-grow justify-center">
+                    <div className="flex-1 w-full flex flex-col items-center justify-between">
+                        <div className="flex flex-col items-center gap-2 flex-grow justify-center py-2">
                             <div 
                                 className="writing-vertical-lr font-black tracking-widest border-2 border-black py-2 px-1 rounded flex items-center justify-center whitespace-pre-wrap"
                                 style={{ fontSize: `${data.categoryFontSize}px` }}
@@ -358,8 +374,11 @@
                             </div>
                         </div>
 
-                        <div className="font-mono font-bold w-full text-center mt-2 whitespace-pre-wrap" style={{ fontSize: `${data.folderNumberFontSize}px` }}>
-                            {data.folderNumber}
+                        {/* 編號區 (上方增加橫線) */}
+                        <div className="w-full border-t-2 border-black pt-1 mt-1 text-center">
+                            <div className="font-mono font-bold whitespace-pre-wrap" style={{ fontSize: `${data.folderNumberFontSize}px` }}>
+                                {data.folderNumber}
+                            </div>
                         </div>
                     </div>
 
@@ -403,7 +422,7 @@
                                 <IconFileText />
                                 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V1.6 (進階排版版)</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V1.7 (版面調整版)</p>
                         </div>
 
                         {/* 標籤切換分頁 */}
@@ -482,6 +501,19 @@
                                         </select>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* 新增：案號 */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">案號 (顯示於工程名稱下方)</label>
+                                <textarea
+                                    name="caseNumber"
+                                    value={activeLabel.caseNumber}
+                                    onChange={handleInputChange}
+                                    rows="1"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    placeholder="例如：案號：112-001"
+                                />
                             </div>
 
                             {/* 分類系統 */}
@@ -598,6 +630,7 @@
                                     <div className="text-xs font-bold text-slate-400 mb-2">個別字體大小 (px)</div>
                                     <FontSizeControl label="主辦單位" field="hostNameFontSize" value={activeLabel.hostNameFontSize} />
                                     <FontSizeControl label="工程名稱" field="projectNameFontSize" value={activeLabel.projectNameFontSize} />
+                                    <FontSizeControl label="案號" field="caseNumberFontSize" value={activeLabel.caseNumberFontSize} />
                                     <FontSizeControl label="中間分類" field="categoryFontSize" value={activeLabel.categoryFontSize} min={16} max={48} />
                                     <FontSizeControl label="卷宗名稱" field="fileNameFontSize" value={activeLabel.fileNameFontSize} />
                                     <FontSizeControl label="編號" field="folderNumberFontSize" value={activeLabel.folderNumberFontSize} />
