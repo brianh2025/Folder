@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V1.7 (版面調整版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.1 (客製化數值版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -24,12 +24,14 @@
         .writing-vertical-lr {
             writing-mode: vertical-lr;
             text-orientation: upright;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.1em;
         }
         /* 隱藏列印時不必要的元素 */
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
+            @page { margin: 0; }
+            body { margin: 0; padding: 0; background: white; }
         }
         /* 自定義捲軸 */
         ::-webkit-scrollbar {
@@ -68,6 +70,7 @@
         const IconCopy = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
         const IconType = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>;
         const IconImage = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
+        const IconRefresh = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
         // --- 資料定義 ---
         const CATEGORY_DATA = {
@@ -127,31 +130,36 @@
             }
         };
 
+        // --- 預設值設定 (DEFAULT_DATA) ---
+        // 如果您需要修改預設值，請直接修改下方的數值
         const DEFAULT_DATA = {
             hostName: '交通部高速公路局',
             projectName: '國道1號增設銜接台74線系統交流道工程',
-            caseNumber: '案號：112-001', // 新增案號預設值
+            caseNumber: '案號：112-001',
             folderNumber: 'P-S-01-001',
             unitName: '工務部',
             category: '監造計畫',
             fileName: '第一版',
-            spineWidth: 45, // mm
-            spineHeight: 85, // mm
+            spineWidth: 45, // mm (標籤寬度)
+            spineHeight: 185, // mm (標籤高度)
             unitIcon: null,
+            hostIcon: null, 
             selectedMainCat: "計畫書 (P)",
             selectedSubCat: "監造計畫",
             
-            // 字體大小設定 (pt/px)
-            hostNameFontSize: 12,
-            projectNameFontSize: 14,
-            caseNumberFontSize: 12, // 新增案號字體
-            categoryFontSize: 24,
-            fileNameFontSize: 18,
-            folderNumberFontSize: 12,
-            unitNameFontSize: 12,
+            // --- 字體大小 (px) ---
+            // 這些數值是針對 45x185mm 標籤的最佳化設定
+            hostNameFontSize: 22,        // 主辦單位
+            projectNameFontSize: 22,     // 工程名稱
+            caseNumberFontSize: 14,      // 案號
+            categoryFontSize: 24,        // 中間分類大字
+            fileNameFontSize: 20,        // 卷宗名稱
+            folderNumberFontSize: 18,    // 卷宗編號
+            unitNameFontSize: 16,        // 單位名稱
             
-            // 圖片大小
-            unitIconSize: 32, // pixel width (大約)
+            // --- 圖片大小 (px) ---
+            unitIconSize: 60,            // 單位圖示
+            hostIconSize: 60,            // 主辦單位 Logo
         };
 
         const App = () => {
@@ -231,11 +239,12 @@
             };
 
             const handleImageUpload = (e) => {
-                const file = e.target.files[0];
+                const { name, files } = e.target;
+                const file = files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        updateLabel(activeTab, 'unitIcon', reader.result);
+                        updateLabel(activeTab, name, reader.result); // name 會是 'unitIcon' 或 'hostIcon'
                     };
                     reader.readAsDataURL(file);
                 }
@@ -250,6 +259,25 @@
                     return { ...source, id: i }; 
                 }));
                 alert("已複製完成！您可以切換分頁修改各標籤的編號。");
+            };
+
+            const resetToDefaults = () => {
+                if (!confirm("確定要重置目前標籤的所有設定為預設值嗎？")) return;
+                
+                // 保留當前 ID 與 卷宗編號差異，其餘重置
+                const currentId = activeLabel.id;
+                const currentFolderNum = activeLabel.folderNumber; // 選擇性保留編號
+                
+                const newLabel = { 
+                    ...DEFAULT_DATA, 
+                    id: currentId,
+                    folderNumber: currentFolderNum // 保留編號避免重打
+                };
+                
+                setLabels(prev => prev.map((lbl, i) => {
+                    if (i !== activeTab) return lbl;
+                    return newLabel;
+                }));
             };
 
             const saveToHistory = () => {
@@ -328,8 +356,16 @@
                         boxSizing: 'border-box'
                     }}
                 >
-                    {/* 1. 最上方：主辦單位 */}
-                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-1 mb-1 min-h-[12%]">
+                    {/* 1. 最上方：主辦單位 + Logo */}
+                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-1 mb-1 min-h-[15%]">
+                        {data.hostIcon && (
+                            <img 
+                                src={data.hostIcon} 
+                                alt="Host Logo" 
+                                className="object-contain mb-1"
+                                style={{ width: `${data.hostIconSize}px` }} 
+                            />
+                        )}
                         <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap" style={{ fontSize: `${data.hostNameFontSize}px` }}>
                             {data.hostName}
                         </h3>
@@ -398,7 +434,7 @@
             );
 
             // 控制面板中的字體調整列
-            const FontSizeControl = ({ label, field, value, min=10, max=36 }) => (
+            const FontSizeControl = ({ label, field, value, min=10, max=60 }) => (
                 <div className="flex items-center justify-between gap-2 mb-2">
                     <label className="text-xs text-slate-500 w-24 flex-shrink-0">{label}</label>
                     <input 
@@ -413,6 +449,25 @@
                 </div>
             );
 
+            // 圖片上傳控制項
+            const ImageUploadControl = ({ label, name, iconValue, iconSizeField, iconSizeValue }) => (
+                <div className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
+                    <div className="text-xs font-bold text-slate-500 mb-2">{label}</div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <label className="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 px-3 py-2 rounded text-sm flex items-center gap-2 transition w-full justify-center">
+                            <div className="flex items-center gap-2"><IconUpload /> 選擇圖片</div>
+                            <input type="file" accept="image/*" name={name} className="hidden" onChange={handleImageUpload} />
+                        </label>
+                        {iconValue && (
+                            <button onClick={() => updateLabel(activeTab, name, null)} className="text-xs text-red-500 hover:underline w-16 text-center">移除</button>
+                        )}
+                    </div>
+                    {iconValue && (
+                        <FontSizeControl label="圖示大小" field={iconSizeField} value={iconSizeValue} min={10} max={100} />
+                    )}
+                </div>
+            );
+
             return (
                 <div className="min-h-screen font-sans text-slate-800 flex flex-col md:flex-row">
                     {/* 左側：控制面板 */}
@@ -422,7 +477,7 @@
                                 <IconFileText />
                                 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V1.7 (版面調整版)</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.1 (客製化數值版)</p>
                         </div>
 
                         {/* 標籤切換分頁 */}
@@ -444,13 +499,22 @@
 
                         <div className="flex justify-between items-center mb-4">
                             <span className="text-xs text-slate-400">正在編輯: 標籤 {activeTab + 1}</span>
-                            <button 
-                                onClick={copyFirstToAll}
-                                className="text-xs flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100 transition"
-                                title="將標籤 1 的所有內容複製到其他 3 張標籤"
-                            >
-                                <IconCopy size={12} /> 複製標籤1到全部
-                            </button>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={resetToDefaults}
+                                    className="text-xs flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200 transition"
+                                    title="重置當前標籤為預設值"
+                                >
+                                    <IconRefresh size={12} /> 重置
+                                </button>
+                                <button 
+                                    onClick={copyFirstToAll}
+                                    className="text-xs flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100 transition"
+                                    title="將標籤 1 的所有內容複製到其他 3 張標籤"
+                                >
+                                    <IconCopy size={12} /> 複製標籤1到全部
+                                </button>
+                            </div>
                         </div>
 
                         <div className="space-y-6 pb-20">
@@ -641,22 +705,24 @@
                                 <div className="mt-4 pt-4 border-t border-slate-200">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="text-slate-500"><IconImage /></div>
-                                        <span className="font-bold text-slate-600">單位圖示設定</span>
+                                        <span className="font-bold text-slate-600">Logo 圖示設定</span>
                                     </div>
                                     
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <label className="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 px-3 py-2 rounded text-sm flex items-center gap-2 transition w-full justify-center">
-                                            <div className="flex items-center gap-2"><IconUpload /> 選擇/更換圖片</div>
-                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                                        </label>
-                                        {activeLabel.unitIcon && (
-                                            <button onClick={() => updateLabel(activeTab, 'unitIcon', null)} className="text-xs text-red-500 hover:underline w-16 text-center">移除</button>
-                                        )}
-                                    </div>
+                                    <ImageUploadControl 
+                                        label="1. 主辦單位 Logo (上方)" 
+                                        name="hostIcon" 
+                                        iconValue={activeLabel.hostIcon} 
+                                        iconSizeField="hostIconSize" 
+                                        iconSizeValue={activeLabel.hostIconSize} 
+                                    />
 
-                                    {activeLabel.unitIcon && (
-                                        <FontSizeControl label="圖示大小" field="unitIconSize" value={activeLabel.unitIconSize} min={10} max={100} />
-                                    )}
+                                    <ImageUploadControl 
+                                        label="2. 單位 Logo (下方)" 
+                                        name="unitIcon" 
+                                        iconValue={activeLabel.unitIcon} 
+                                        iconSizeField="unitIconSize" 
+                                        iconSizeValue={activeLabel.unitIconSize} 
+                                    />
                                 </div>
                             </div>
 
