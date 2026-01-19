@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.11 (雲林縣政府標準版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.14 (嚴格標準版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -20,7 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* 直書設定 */
+        /* 直書設定 (保留但中間分類已改橫式) */
         .writing-vertical-lr {
             writing-mode: vertical-lr;
             text-orientation: upright;
@@ -76,10 +76,11 @@
         const IconImage = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
         const IconRefresh = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
-        // --- 資料定義 (依據 V2.10 需求完整擴充) ---
+        // --- 資料定義 (V2.14 依據最新需求更新) ---
         const CATEGORY_DATA = {
             "MD 01設計資料": {
                 name: "MD 01設計資料",
+                code: "01",
                 subs: [
                     { name: "A-設計預算書圖", code: "A", subs: [] },
                     { name: "B-變更資料", code: "B", subs: [] },
@@ -89,12 +90,13 @@
             },
             "MD 02監造執行文件": {
                 name: "MD 02監造執行文件",
+                code: "02",
                 subs: [
                     { 
                         name: "A-契約、開工資料", code: "A", 
                         subs: [
-                            { name: "A1契約", code: "A1" },
-                            { name: "A2開工資料", code: "A2" }
+                            { name: "A-1契約", code: "A-1" },
+                            { name: "A-2開工資料", code: "A-2" }
                         ]
                     },
                     { 
@@ -152,6 +154,7 @@
             },
             "MD 03承包商提供文件": {
                 name: "MD 03承包商提供文件",
+                code: "03",
                 subs: [
                     { 
                         name: "P-承包商計畫書", code: "P",
@@ -189,22 +192,19 @@
 
         // --- 預設值設定 (DEFAULT_DATA) ---
         const DEFAULT_DATA = {
-            hostName: '雲林縣政府', // 客製化預設值
+            hostName: '雲林縣政府', 
             projectName: '國道1號增設銜接台74線系統交流道工程',
-            caseNumber: '112-001', // 移除 "案號-" 前綴，純數字
-            folderNumber: 'P-S-01', // 符合 [主類]-[次類]-[流水號]
-            unitName: '睿泰工程顧問有限公司', // 客製化預設值
-            category: 'S-監造計畫', // 保留代碼
+            caseNumber: '112-001', // 純數字案號
+            folderNumber: 'RT112-001-02S01001', // 預設使用 V2.10 規則
+            unitName: '睿泰工程顧問有限公司',
+            category: 'S-監造計畫', 
             fileName: '第一版',
             spineWidth: 45, // mm
             spineHeight: 185, // mm
             unitIcon: null,
             hostIcon: null, 
-            
-            // 選單狀態 (儲存選到的物件 key)
-            selectedSystem: "MD 02監造執行文件",
-            selectedMain: "P-計畫書",
-            selectedSub: "S-監造計畫",
+            selectedMainCat: "MD 02監造執行文件",
+            selectedSubCat: "S-監造計畫",
             
             // --- 字體大小 (px) ---
             hostNameFontSize: 22,
@@ -223,9 +223,9 @@
         const App = () => {
             const [labels, setLabels] = useState([
                 { ...DEFAULT_DATA, id: 0 },
-                { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-02' },
-                { ...DEFAULT_DATA, id: 2, folderNumber: 'P-S-03' },
-                { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-04' }
+                { ...DEFAULT_DATA, id: 1, folderNumber: 'RT112-001-02S01002' },
+                { ...DEFAULT_DATA, id: 2, folderNumber: 'RT112-001-02S01003' },
+                { ...DEFAULT_DATA, id: 3, folderNumber: 'RT112-001-02S01004' }
             ]);
             
             const [activeTab, setActiveTab] = useState(0); 
@@ -240,7 +240,7 @@
 
             // 載入歷史紀錄和預設圖片
             useEffect(() => {
-                const savedHistory = localStorage.getItem('projectHistory_v2'); // 使用新 key 避免衝突
+                const savedHistory = localStorage.getItem('projectHistory_v2'); 
                 if (savedHistory) {
                     setHistory(JSON.parse(savedHistory));
                 }
@@ -280,52 +280,47 @@
                 updateLabel(activeTab, name, value);
             };
 
-            // 處理工程名稱變更，自動帶入案號
-            const handleProjectNameChange = (e) => {
-                const newName = e.target.value;
-                updateLabel(activeTab, 'projectName', newName);
-                
-                // 搜尋歷史紀錄
-                const found = history.find(h => h.name === newName);
-                if (found) {
-                    updateLabel(activeTab, 'caseNumber', found.caseNo);
+            // 提取案號中的數字部分
+            const extractCaseNo = (str) => {
+                if (!str) return "";
+                const match = str.match(/[0-9-]+/);
+                return match ? match[0] : str;
+            };
+
+            const handleCategoryChange = (mainCat, subCat) => {
+                const newLabels = [...labels];
+                const lbl = newLabels[activeTab];
+
+                lbl.selectedMainCat = mainCat;
+                lbl.selectedSubCat = subCat;
+
+                if (mainCat && subCat && CATEGORY_DATA[mainCat]) {
+                    const mainCode = CATEGORY_DATA[mainCat].code;
+                    const subObj = CATEGORY_DATA[mainCat].subs.find(s => s.name === subCat);
+                    const subCode = subObj ? subObj.code : '';
+                    
+                    // 1. 保留完整名稱
+                    lbl.category = subCat;
+
+                    // 2. 編號規則 V2.10: RT[案號]-[系統代碼(02)][分類代碼(S)][流水號]
+                    const caseNoCore = extractCaseNo(lbl.caseNumber) || "000-000";
+                    
+                    // 系統代碼: MD 02 -> 02
+                    const sysObj = CATEGORY_DATA[activeLabel.selectedSystem];
+                    const sysCode = sysObj ? sysObj.code : "00";
+                    
+                    // 分類代碼: 優先用細項代碼 subCode，若無則用主項 mainCode
+                    // 去除所有 "-"
+                    const finalCode = (subCode || mainCode).replace(/-/g, '');
+                    
+                    const serial = "01001"; // 預設流水號
+
+                    lbl.folderNumber = `RT${caseNoCore}-${sysCode}${finalCode}${serial}`;
                 }
+                setLabels(newLabels);
             };
 
-            // 處理分類選擇變更 (三層級連動)
-            const handleSystemChange = (e) => {
-                const sysKey = e.target.value;
-                const sysObj = CATEGORY_DATA[sysKey];
-                if (!sysObj) return;
-
-                // 預設選第一個主分類
-                const firstMain = sysObj.subs[0];
-                const firstMainKey = firstMain ? firstMain.name : "";
-                
-                // 預設選第一個次分類 (若有)
-                const firstSub = firstMain && firstMain.subs.length > 0 ? firstMain.subs[0] : null;
-                const firstSubKey = firstSub ? firstSub.name : "";
-
-                updateClassification(sysKey, firstMainKey, firstSubKey);
-            };
-
-            const handleMainChange = (e) => {
-                const mainKey = e.target.value;
-                const sysObj = CATEGORY_DATA[activeLabel.selectedSystem];
-                const mainObj = sysObj.subs.find(m => m.name === mainKey);
-                
-                // 預設選第一個次分類
-                const firstSub = mainObj && mainObj.subs.length > 0 ? mainObj.subs[0] : null;
-                const firstSubKey = firstSub ? firstSub.name : "";
-
-                updateClassification(activeLabel.selectedSystem, mainKey, firstSubKey);
-            };
-
-            const handleSubChange = (e) => {
-                updateClassification(activeLabel.selectedSystem, activeLabel.selectedMain, e.target.value);
-            };
-
-            // 更新分類邏輯與編號
+            // 修正：手動觸發分類更新以重新計算編號
             const updateClassification = (sysKey, mainKey, subKey) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
@@ -334,43 +329,61 @@
                 lbl.selectedMain = mainKey;
                 lbl.selectedSub = subKey;
 
-                // 取得代碼
                 const sysObj = CATEGORY_DATA[sysKey];
                 const mainObj = sysObj ? sysObj.subs.find(m => m.name === mainKey) : null;
-                
-                // 主類代碼
+                const sysCode = sysObj ? sysObj.code : "";
                 const mainCode = mainObj ? mainObj.code : "";
                 
-                // 次類代碼與名稱
                 let subCode = "";
-                let categoryName = mainKey; // 預設顯示主分類名稱
+                let categoryName = mainKey; 
 
                 if (subKey) {
                     const subObj = mainObj ? mainObj.subs.find(s => s.name === subKey) : null;
                     if (subObj) {
                         subCode = subObj.code;
-                        categoryName = subKey; // 若有次分類，顯示次分類名稱
+                        categoryName = subKey; 
                     }
                 }
 
-                // 更新顯示的分類名稱 (完整保留代碼，例如 "S-監造計畫")
-                // 自動去除路徑中的分類代碼，只留顯示名稱
-                // 修正：使用者希望"中間分類改為橫式，不用'-'" (V2.8)，但V2.9又說"代碼保留"。
-                // V2.10 需求：顯示完整名稱 (如 E1-施工抽查)
                 lbl.category = categoryName;
 
-                // 生成編號：[主類]-[次類]-[流水號]
-                // 移除代碼中的 "-" 以求簡潔 (例如 Q-01 -> Q01)
-                const cleanMain = mainCode.replace(/-/g, '');
-                const cleanSub = subCode.replace(/-/g, '');
+                // V2.10 規則: RT[案號]-[系統][代碼][流水]
+                // 修正：之前 V2.10 有保留 "MD" 嗎？ 使用者說 "編號規則改為 RT+案號+..."，並沒說要加 MD。
+                // 但使用者指定 "編號規則請使用V2.10版"。
+                // V2.10 的規則是：RT112-001-02S01001 (02是系統碼，S是分類碼)
+                // 所以這裡邏輯正確：RT + 案號 + "-" + sysCode + finalCode + serial
                 
-                // 如果沒有次類，就只用主類
-                const codePart = cleanSub ? `${cleanMain}-${cleanSub}` : cleanMain;
-                const serial = "01"; // 預設流水號
+                const caseNoCore = extractCaseNo(lbl.caseNumber) || "000-000";
+                const finalCode = (subCode || mainCode).replace(/-/g, '');
+                const serial = "01001";
 
-                lbl.folderNumber = `${codePart}-${serial}`;
+                lbl.folderNumber = `RT${caseNoCore}-${sysCode}${finalCode}${serial}`;
 
                 setLabels(newLabels);
+            };
+
+            const handleSystemChange = (e) => {
+                const sysKey = e.target.value;
+                const sysObj = CATEGORY_DATA[sysKey];
+                if (!sysObj) return;
+                const firstMain = sysObj.subs[0];
+                const firstMainKey = firstMain ? firstMain.name : "";
+                const firstSub = firstMain && firstMain.subs.length > 0 ? firstMain.subs[0] : null;
+                const firstSubKey = firstSub ? firstSub.name : "";
+                updateClassification(sysKey, firstMainKey, firstSubKey);
+            };
+
+            const handleMainChange = (e) => {
+                const mainKey = e.target.value;
+                const sysObj = CATEGORY_DATA[activeLabel.selectedSystem];
+                const mainObj = sysObj.subs.find(m => m.name === mainKey);
+                const firstSub = mainObj && mainObj.subs.length > 0 ? mainObj.subs[0] : null;
+                const firstSubKey = firstSub ? firstSub.name : "";
+                updateClassification(activeLabel.selectedSystem, mainKey, firstSubKey);
+            };
+
+            const handleSubChange = (e) => {
+                updateClassification(activeLabel.selectedSystem, activeLabel.selectedMain, e.target.value);
             };
 
             const handleImageUpload = (e) => {
@@ -413,17 +426,11 @@
                 }));
             };
 
-            // 儲存歷史紀錄 (包含案號)
             const saveToHistory = () => {
                 if (!activeLabel.projectName.trim()) return;
-                
-                // 更新或新增歷史
                 const newEntry = { name: activeLabel.projectName, caseNo: activeLabel.caseNumber };
-                
-                // 過濾掉舊的同名紀錄，加入新的到最前面
                 const filtered = history.filter(h => h.name !== activeLabel.projectName);
                 const newHistory = [newEntry, ...filtered].slice(0, 15);
-                
                 setHistory(newHistory);
                 localStorage.setItem('projectHistory_v2', JSON.stringify(newHistory));
             };
@@ -431,14 +438,12 @@
             const handleHistorySelect = (e) => {
                 const val = e.target.value;
                 if(!val) return;
-                
-                // 找出對應的案號
                 const record = history.find(h => h.name === val);
                 updateLabel(activeTab, 'projectName', val);
                 if(record) {
                     updateLabel(activeTab, 'caseNumber', record.caseNo);
                 }
-                e.target.value = ""; // Reset
+                e.target.value = ""; 
             };
 
             const clearHistory = () => {
@@ -453,7 +458,7 @@
                 }
                 setIsSaving(true);
                 try {
-                    saveToHistory(); // 儲存專案與案號
+                    saveToHistory(); 
                     const html2canvas = window.html2canvas;
                     const { jsPDF } = window.jspdf;
                     const canvas = await html2canvas(printRef.current, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
@@ -496,7 +501,7 @@
                         </h3>
                     </div>
 
-                    {/* 2. 工程名稱 + 案號 (純數字) */}
+                    {/* 2. 工程名稱 + 案號 */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
                         <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
                             <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
@@ -508,7 +513,6 @@
                                 <div className="w-full border-t-2 border-black"></div>
                                 <div className="w-full py-1 text-center">
                                     <h3 className="font-bold w-full break-words leading-tight" style={{ fontSize: `${data.caseNumberFontSize}px` }}>
-                                        {/* 直接顯示案號，不加"案號-" */}
                                         {data.caseNumber}
                                     </h3>
                                 </div>
@@ -549,7 +553,7 @@
                 </div>
             );
 
-            // 控制面板元件 (省略部分樣式以節省空間，功能不變)
+            // 控制面板元件
             const FontSizeControl = ({ label, field, value, min=10, max=60 }) => (
                 <div className="flex items-center justify-between gap-2 mb-1">
                     <label className="text-xs text-slate-500 w-24 flex-shrink-0">{label}</label>
@@ -565,7 +569,7 @@
                             <h1 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
                                 <IconFileText /> 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">V2.11 雲林縣政府標準版</p>
+                            <p className="text-sm text-slate-500 mt-1">V2.14 嚴格標準版</p>
                         </div>
 
                         {/* 標籤 Tabs */}
@@ -578,8 +582,8 @@
                         <div className="space-y-4 pb-20">
                             {/* 主辦 & 工程 & 案號 */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500">主辦單位</label>
-                                <input type="text" name="hostName" value={activeLabel.hostName} onChange={handleInputChange} className="w-full p-2 border rounded text-sm" />
+                                <label className="text-xs font-bold text-slate-500">主辦單位 (可換行)</label>
+                                <textarea name="hostName" value={activeLabel.hostName} onChange={handleInputChange} rows="2" className="w-full p-2 border rounded text-sm resize-none" />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex justify-between"><label className="text-xs font-bold text-slate-500">工程名稱</label><button onClick={clearHistory} className="text-xs text-red-400 flex items-center gap-1"><IconTrash2 size={10}/>清除紀錄</button></div>
@@ -606,7 +610,6 @@
                                     {CATEGORY_DATA[activeLabel.selectedSystem].subs.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
                                 </select>
                                 <select value={activeLabel.selectedSub} onChange={handleSubChange} className="w-full p-1 text-sm border rounded">
-                                    {/* 這裡需要安全存取，因為切換主類時次類可能暫時為空或不匹配 */}
                                     {(() => {
                                         const sys = CATEGORY_DATA[activeLabel.selectedSystem];
                                         const main = sys.subs.find(m => m.name === activeLabel.selectedMain);
@@ -618,34 +621,57 @@
 
                             <div className="grid grid-cols-2 gap-2">
                                 <div><label className="text-xs font-bold text-slate-500">卷宗編號</label><input type="text" name="folderNumber" value={activeLabel.folderNumber} onChange={handleInputChange} className="w-full p-2 border rounded text-sm font-mono" /></div>
-                                <div><label className="text-xs font-bold text-slate-500">卷宗名稱</label><input type="text" name="fileName" value={activeLabel.fileName} onChange={handleInputChange} className="w-full p-2 border rounded text-sm" /></div>
+                                <div><label className="text-xs font-bold text-slate-500">卷宗名稱</label><textarea name="fileName" value={activeLabel.fileName} onChange={handleInputChange} rows="1" className="w-full p-2 border rounded text-sm resize-none" /></div>
                             </div>
                             
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-slate-500">單位名稱</label>
-                                <input type="text" name="unitName" value={activeLabel.unitName} onChange={handleInputChange} className="w-full p-2 border rounded text-sm" />
+                                <textarea name="unitName" value={activeLabel.unitName} onChange={handleInputChange} rows="1" className="w-full p-2 border rounded text-sm resize-none" />
                             </div>
 
                             {/* 設定區 */}
                             <div className="p-3 bg-slate-50 rounded border space-y-3">
                                 <div className="text-sm font-bold text-slate-600 flex gap-2"><IconSettings size={16}/> 圖片與排版</div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <label className="cursor-pointer bg-white border p-2 rounded text-xs text-center hover:bg-slate-100">
-                                        <div className="flex justify-center mb-1"><IconUpload size={14}/></div>
-                                        主辦 Logo
-                                        <input type="file" name="hostIcon" accept="image/*" className="hidden" onChange={handleImageUpload}/>
-                                    </label>
-                                    <label className="cursor-pointer bg-white border p-2 rounded text-xs text-center hover:bg-slate-100">
-                                        <div className="flex justify-center mb-1"><IconUpload size={14}/></div>
-                                        單位 Logo
-                                        <input type="file" name="unitIcon" accept="image/*" className="hidden" onChange={handleImageUpload}/>
-                                    </label>
+                                
+                                {/* 圖片與大小 */}
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-xs font-bold text-slate-500">主辦單位 Logo</label>
+                                            {activeLabel.hostIcon && <button onClick={() => handleRemoveImage('hostIcon')} className="text-xs text-red-500">移除</button>}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <label className="cursor-pointer bg-white border p-1 px-3 rounded text-xs text-center hover:bg-slate-100 flex-1">
+                                                <div className="flex items-center justify-center gap-1"><IconUpload size={12}/> 上傳</div>
+                                                <input type="file" name="hostIcon" accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                                            </label>
+                                            {activeLabel.hostIcon && <div className="flex-1"><FontSizeControl label="大小" field="hostIconSize" value={activeLabel.hostIconSize} min={20} max={100}/></div>}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-xs font-bold text-slate-500">單位 Logo</label>
+                                            {activeLabel.unitIcon && <button onClick={() => handleRemoveImage('unitIcon')} className="text-xs text-red-500">移除</button>}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <label className="cursor-pointer bg-white border p-1 px-3 rounded text-xs text-center hover:bg-slate-100 flex-1">
+                                                <div className="flex items-center justify-center gap-1"><IconUpload size={12}/> 上傳</div>
+                                                <input type="file" name="unitIcon" accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                                            </label>
+                                            {activeLabel.unitIcon && <div className="flex-1"><FontSizeControl label="大小" field="unitIconSize" value={activeLabel.unitIconSize} min={20} max={100}/></div>}
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="space-y-1 pt-2 border-t">
                                     <FontSizeControl label="主辦字體" field="hostNameFontSize" value={activeLabel.hostNameFontSize} />
                                     <FontSizeControl label="工程字體" field="projectNameFontSize" value={activeLabel.projectNameFontSize} />
+                                    <FontSizeControl label="案號字體" field="caseNumberFontSize" value={activeLabel.caseNumberFontSize} />
                                     <FontSizeControl label="分類字體" field="categoryFontSize" value={activeLabel.categoryFontSize} />
+                                    <FontSizeControl label="卷宗名稱" field="fileNameFontSize" value={activeLabel.fileNameFontSize} />
                                     <FontSizeControl label="編號字體" field="folderNumberFontSize" value={activeLabel.folderNumberFontSize} />
+                                    <FontSizeControl label="單位字體" field="unitNameFontSize" value={activeLabel.unitNameFontSize} />
                                 </div>
                             </div>
                             
