@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.14 (嚴格標準版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.15 (修復調整功能版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -20,7 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* 直書設定 (保留但中間分類已改橫式) */
+        /* 直書設定 */
         .writing-vertical-lr {
             writing-mode: vertical-lr;
             text-orientation: upright;
@@ -76,7 +76,7 @@
         const IconImage = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
         const IconRefresh = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
-        // --- 資料定義 (V2.14 依據最新需求更新) ---
+        // --- 資料定義 (V2.14 嚴格標準版) ---
         const CATEGORY_DATA = {
             "MD 01設計資料": {
                 name: "MD 01設計資料",
@@ -195,7 +195,7 @@
             hostName: '雲林縣政府', 
             projectName: '國道1號增設銜接台74線系統交流道工程',
             caseNumber: '112-001', // 純數字案號
-            folderNumber: 'RT112-001-02S01001', // 預設使用 V2.10 規則
+            folderNumber: 'RT112-001-02S01001', // 還原 RT 規則
             unitName: '睿泰工程顧問有限公司',
             category: 'S-監造計畫', 
             fileName: '第一版',
@@ -203,8 +203,10 @@
             spineHeight: 185, // mm
             unitIcon: null,
             hostIcon: null, 
-            selectedMainCat: "MD 02監造執行文件",
-            selectedSubCat: "S-監造計畫",
+            
+            selectedSystem: "MD 02監造執行文件",
+            selectedMain: "P-計畫書",
+            selectedSub: "S-監造計畫",
             
             // --- 字體大小 (px) ---
             hostNameFontSize: 22,
@@ -229,7 +231,6 @@
             ]);
             
             const [activeTab, setActiveTab] = useState(0); 
-            // history 儲存 { name: string, caseNo: string }
             const [history, setHistory] = useState([]);
             const [isSaving, setIsSaving] = useState(false);
             const [libsLoaded, setLibsLoaded] = useState(false);
@@ -238,7 +239,6 @@
 
             const activeLabel = labels[activeTab];
 
-            // 載入歷史紀錄和預設圖片
             useEffect(() => {
                 const savedHistory = localStorage.getItem('projectHistory_v2'); 
                 if (savedHistory) {
@@ -280,47 +280,32 @@
                 updateLabel(activeTab, name, value);
             };
 
-            // 提取案號中的數字部分
+            const handleProjectNameChange = (e) => {
+                const newName = e.target.value;
+                updateLabel(activeTab, 'projectName', newName);
+                const found = history.find(h => h.name === newName);
+                if (found) {
+                    updateLabel(activeTab, 'caseNumber', found.caseNo);
+                }
+            };
+
+            const handleHistorySelect = (e) => {
+                const val = e.target.value;
+                if(!val) return;
+                const record = history.find(h => h.name === val);
+                updateLabel(activeTab, 'projectName', val);
+                if(record) {
+                    updateLabel(activeTab, 'caseNumber', record.caseNo);
+                }
+                e.target.value = ""; 
+            };
+
             const extractCaseNo = (str) => {
                 if (!str) return "";
                 const match = str.match(/[0-9-]+/);
                 return match ? match[0] : str;
             };
 
-            const handleCategoryChange = (mainCat, subCat) => {
-                const newLabels = [...labels];
-                const lbl = newLabels[activeTab];
-
-                lbl.selectedMainCat = mainCat;
-                lbl.selectedSubCat = subCat;
-
-                if (mainCat && subCat && CATEGORY_DATA[mainCat]) {
-                    const mainCode = CATEGORY_DATA[mainCat].code;
-                    const subObj = CATEGORY_DATA[mainCat].subs.find(s => s.name === subCat);
-                    const subCode = subObj ? subObj.code : '';
-                    
-                    // 1. 保留完整名稱
-                    lbl.category = subCat;
-
-                    // 2. 編號規則 V2.10: RT[案號]-[系統代碼(02)][分類代碼(S)][流水號]
-                    const caseNoCore = extractCaseNo(lbl.caseNumber) || "000-000";
-                    
-                    // 系統代碼: MD 02 -> 02
-                    const sysObj = CATEGORY_DATA[activeLabel.selectedSystem];
-                    const sysCode = sysObj ? sysObj.code : "00";
-                    
-                    // 分類代碼: 優先用細項代碼 subCode，若無則用主項 mainCode
-                    // 去除所有 "-"
-                    const finalCode = (subCode || mainCode).replace(/-/g, '');
-                    
-                    const serial = "01001"; // 預設流水號
-
-                    lbl.folderNumber = `RT${caseNoCore}-${sysCode}${finalCode}${serial}`;
-                }
-                setLabels(newLabels);
-            };
-
-            // 修正：手動觸發分類更新以重新計算編號
             const updateClassification = (sysKey, mainKey, subKey) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
@@ -337,8 +322,8 @@
                 let subCode = "";
                 let categoryName = mainKey; 
 
-                if (subKey) {
-                    const subObj = mainObj ? mainObj.subs.find(s => s.name === subKey) : null;
+                if (subKey && mainObj) {
+                    const subObj = mainObj.subs.find(s => s.name === subKey);
                     if (subObj) {
                         subCode = subObj.code;
                         categoryName = subKey; 
@@ -348,11 +333,6 @@
                 lbl.category = categoryName;
 
                 // V2.10 規則: RT[案號]-[系統][代碼][流水]
-                // 修正：之前 V2.10 有保留 "MD" 嗎？ 使用者說 "編號規則改為 RT+案號+..."，並沒說要加 MD。
-                // 但使用者指定 "編號規則請使用V2.10版"。
-                // V2.10 的規則是：RT112-001-02S01001 (02是系統碼，S是分類碼)
-                // 所以這裡邏輯正確：RT + 案號 + "-" + sysCode + finalCode + serial
-                
                 const caseNoCore = extractCaseNo(lbl.caseNumber) || "000-000";
                 const finalCode = (subCode || mainCode).replace(/-/g, '');
                 const serial = "01001";
@@ -434,17 +414,6 @@
                 setHistory(newHistory);
                 localStorage.setItem('projectHistory_v2', JSON.stringify(newHistory));
             };
-            
-            const handleHistorySelect = (e) => {
-                const val = e.target.value;
-                if(!val) return;
-                const record = history.find(h => h.name === val);
-                updateLabel(activeTab, 'projectName', val);
-                if(record) {
-                    updateLabel(activeTab, 'caseNumber', record.caseNo);
-                }
-                e.target.value = ""; 
-            };
 
             const clearHistory = () => {
                 setHistory([]);
@@ -501,7 +470,7 @@
                         </h3>
                     </div>
 
-                    {/* 2. 工程名稱 + 案號 */}
+                    {/* 2. 工程名稱 + 案號 (純數字) */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
                         <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
                             <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
@@ -513,6 +482,7 @@
                                 <div className="w-full border-t-2 border-black"></div>
                                 <div className="w-full py-1 text-center">
                                     <h3 className="font-bold w-full break-words leading-tight" style={{ fontSize: `${data.caseNumberFontSize}px` }}>
+                                        {/* 直接顯示案號，不加"案號-" */}
                                         {data.caseNumber}
                                     </h3>
                                 </div>
@@ -553,12 +523,31 @@
                 </div>
             );
 
-            // 控制面板元件
+            // 控制面板元件 (FontSizeControl & ImageUploadControl)
             const FontSizeControl = ({ label, field, value, min=10, max=60 }) => (
                 <div className="flex items-center justify-between gap-2 mb-1">
                     <label className="text-xs text-slate-500 w-24 flex-shrink-0">{label}</label>
                     <input type="range" min={min} max={max} value={value} onChange={(e) => updateLabel(activeTab, field, Number(e.target.value))} className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
                     <span className="text-xs text-slate-500 w-6 text-right">{value}</span>
+                </div>
+            );
+
+            // Image Upload Control Component
+            const ImageUploadControl = ({ label, name, iconValue, iconSizeField, iconSizeValue }) => (
+                <div className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
+                    <div className="text-xs font-bold text-slate-500 mb-2">{label}</div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <label className="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 px-3 py-2 rounded text-sm flex items-center gap-2 transition w-full justify-center">
+                            <div className="flex items-center gap-2"><IconUpload size={14} /> 選擇圖片</div>
+                            <input type="file" accept="image/*" name={name} className="hidden" onChange={handleImageUpload} />
+                        </label>
+                        {iconValue && (
+                            <button onClick={() => handleRemoveImage(name)} className="text-xs text-red-500 hover:underline w-16 text-center">移除</button>
+                        )}
+                    </div>
+                    {iconValue && (
+                        <FontSizeControl label="圖示大小" field={iconSizeField} value={iconSizeValue} min={10} max={100} />
+                    )}
                 </div>
             );
 
@@ -569,7 +558,7 @@
                             <h1 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
                                 <IconFileText /> 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">V2.14 嚴格標準版</p>
+                            <p className="text-sm text-slate-500 mt-1">V2.15 修復調整功能版</p>
                         </div>
 
                         {/* 標籤 Tabs */}
@@ -607,11 +596,14 @@
                                     {Object.keys(CATEGORY_DATA).map(k => <option key={k} value={k}>{k}</option>)}
                                 </select>
                                 <select value={activeLabel.selectedMain} onChange={handleMainChange} className="w-full p-1 text-sm border rounded">
-                                    {CATEGORY_DATA[activeLabel.selectedSystem].subs.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                                    {CATEGORY_DATA[activeLabel.selectedSystem] && CATEGORY_DATA[activeLabel.selectedSystem].subs ? 
+                                        CATEGORY_DATA[activeLabel.selectedSystem].subs.map(m => <option key={m.name} value={m.name}>{m.name}</option>) : null
+                                    }
                                 </select>
                                 <select value={activeLabel.selectedSub} onChange={handleSubChange} className="w-full p-1 text-sm border rounded">
                                     {(() => {
                                         const sys = CATEGORY_DATA[activeLabel.selectedSystem];
+                                        if (!sys) return <option value="">(請選擇系統)</option>;
                                         const main = sys.subs.find(m => m.name === activeLabel.selectedMain);
                                         return main && main.subs.length > 0 ? main.subs.map(s => <option key={s.name} value={s.name}>{s.name}</option>) : <option value="">(無次分類)</option>;
                                     })()}
@@ -629,50 +621,35 @@
                                 <textarea name="unitName" value={activeLabel.unitName} onChange={handleInputChange} rows="1" className="w-full p-2 border rounded text-sm resize-none" />
                             </div>
 
-                            {/* 設定區 */}
+                            {/* 設定區：圖片 */}
                             <div className="p-3 bg-slate-50 rounded border space-y-3">
-                                <div className="text-sm font-bold text-slate-600 flex gap-2"><IconSettings size={16}/> 圖片與排版</div>
-                                
-                                {/* 圖片與大小 */}
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <label className="text-xs font-bold text-slate-500">主辦單位 Logo</label>
-                                            {activeLabel.hostIcon && <button onClick={() => handleRemoveImage('hostIcon')} className="text-xs text-red-500">移除</button>}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <label className="cursor-pointer bg-white border p-1 px-3 rounded text-xs text-center hover:bg-slate-100 flex-1">
-                                                <div className="flex items-center justify-center gap-1"><IconUpload size={12}/> 上傳</div>
-                                                <input type="file" name="hostIcon" accept="image/*" className="hidden" onChange={handleImageUpload}/>
-                                            </label>
-                                            {activeLabel.hostIcon && <div className="flex-1"><FontSizeControl label="大小" field="hostIconSize" value={activeLabel.hostIconSize} min={20} max={100}/></div>}
-                                        </div>
-                                    </div>
+                                <div className="text-sm font-bold text-slate-600 flex gap-2 border-b pb-2"><IconSettings size={16}/> 圖片設定</div>
+                                <ImageUploadControl 
+                                    label="主辦單位 Logo" 
+                                    name="hostIcon" 
+                                    iconValue={activeLabel.hostIcon} 
+                                    iconSizeField="hostIconSize" 
+                                    iconSizeValue={activeLabel.hostIconSize} 
+                                />
+                                <ImageUploadControl 
+                                    label="單位 Logo" 
+                                    name="unitIcon" 
+                                    iconValue={activeLabel.unitIcon} 
+                                    iconSizeField="unitIconSize" 
+                                    iconSizeValue={activeLabel.unitIconSize} 
+                                />
+                            </div>
 
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <label className="text-xs font-bold text-slate-500">單位 Logo</label>
-                                            {activeLabel.unitIcon && <button onClick={() => handleRemoveImage('unitIcon')} className="text-xs text-red-500">移除</button>}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <label className="cursor-pointer bg-white border p-1 px-3 rounded text-xs text-center hover:bg-slate-100 flex-1">
-                                                <div className="flex items-center justify-center gap-1"><IconUpload size={12}/> 上傳</div>
-                                                <input type="file" name="unitIcon" accept="image/*" className="hidden" onChange={handleImageUpload}/>
-                                            </label>
-                                            {activeLabel.unitIcon && <div className="flex-1"><FontSizeControl label="大小" field="unitIconSize" value={activeLabel.unitIconSize} min={20} max={100}/></div>}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1 pt-2 border-t">
-                                    <FontSizeControl label="主辦字體" field="hostNameFontSize" value={activeLabel.hostNameFontSize} />
-                                    <FontSizeControl label="工程字體" field="projectNameFontSize" value={activeLabel.projectNameFontSize} />
-                                    <FontSizeControl label="案號字體" field="caseNumberFontSize" value={activeLabel.caseNumberFontSize} />
-                                    <FontSizeControl label="分類字體" field="categoryFontSize" value={activeLabel.categoryFontSize} />
-                                    <FontSizeControl label="卷宗名稱" field="fileNameFontSize" value={activeLabel.fileNameFontSize} />
-                                    <FontSizeControl label="編號字體" field="folderNumberFontSize" value={activeLabel.folderNumberFontSize} />
-                                    <FontSizeControl label="單位字體" field="unitNameFontSize" value={activeLabel.unitNameFontSize} />
-                                </div>
+                            {/* 設定區：字體 */}
+                            <div className="p-3 bg-slate-50 rounded border space-y-3">
+                                <div className="text-sm font-bold text-slate-600 flex gap-2 border-b pb-2"><IconType size={16}/> 字體大小設定</div>
+                                <FontSizeControl label="主辦字體" field="hostNameFontSize" value={activeLabel.hostNameFontSize} />
+                                <FontSizeControl label="工程字體" field="projectNameFontSize" value={activeLabel.projectNameFontSize} />
+                                <FontSizeControl label="案號字體" field="caseNumberFontSize" value={activeLabel.caseNumberFontSize} />
+                                <FontSizeControl label="分類字體" field="categoryFontSize" value={activeLabel.categoryFontSize} />
+                                <FontSizeControl label="卷宗名稱" field="fileNameFontSize" value={activeLabel.fileNameFontSize} />
+                                <FontSizeControl label="編號字體" field="folderNumberFontSize" value={activeLabel.folderNumberFontSize} />
+                                <FontSizeControl label="單位字體" field="unitNameFontSize" value={activeLabel.unitNameFontSize} />
                             </div>
                             
                             <div className="flex gap-2 pt-2">
