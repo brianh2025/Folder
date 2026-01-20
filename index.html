@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.15 (修復調整功能版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.10 (名稱優化版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -64,8 +64,8 @@
         // --- 圖標組件 (SVG) ---
         const IconFileText = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>;
         const IconTrash2 = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
-        const IconFolderOpen = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>;
-        const IconSettings = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+        const IconFolderOpen = () => <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>;
+        const IconSettings = () => <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
         const IconUpload = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
         const IconPrinter = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
         const IconCloud = ({size=20}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>;
@@ -76,137 +76,94 @@
         const IconImage = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
         const IconRefresh = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
-        // --- 資料定義 (V2.14 嚴格標準版) ---
+        // --- 資料定義 ---
         const CATEGORY_DATA = {
-            "MD 01設計資料": {
-                name: "MD 01設計資料",
-                code: "01",
+            "A-基本資料": {
+                code: "A", 
                 subs: [
-                    { name: "A-設計預算書圖", code: "A", subs: [] },
-                    { name: "B-變更資料", code: "B", subs: [] },
-                    { name: "C-設計管線調查含圖資", code: "C", subs: [] },
-                    { name: "D-交維計畫", code: "D", subs: [] }
+                    { name: "A1-契約、開工資料", code: "1" },
+                    { name: "A2-設計資料", code: "2" }
                 ]
             },
-            "MD 02監造執行文件": {
-                name: "MD 02監造執行文件",
-                code: "02",
+            "D-估驗計價(廠商估驗計價審查)": {
+                code: "D",
                 subs: [
-                    { 
-                        name: "A-契約、開工資料", code: "A", 
-                        subs: [
-                            { name: "A-1契約", code: "A-1" },
-                            { name: "A-2開工資料", code: "A-2" }
-                        ]
-                    },
-                    { 
-                        name: "P-計畫書", code: "P",
-                        subs: [
-                            { name: "S-監造計畫", code: "S" },
-                            { name: "Q-整體計畫審查", code: "Q" },
-                            { name: "A-分項計畫審查", code: "A" },
-                            { name: "Y-材料送審資料審查", code: "Y" }
-                        ]
-                    },
-                    { name: "G-監造日報", code: "G", subs: [] },
-                    { 
-                        name: "D-計畫書、材料審查意見", code: "D",
-                        subs: [
-                            { name: "D1-計劃書審查意見", code: "D1" },
-                            { name: "D2-材料審查意見", code: "D2" }
-                        ]
-                    },
-                    { 
-                        name: "E-監造施工抽查文件", code: "E",
-                        subs: [
-                            { name: "E1-施工抽查", code: "E1" },
-                            { name: "E2-材料設施抽查", code: "E2" },
-                            { name: "E3-職業安全抽查", code: "E3" },
-                            { name: "E4-環境衛生抽查", code: "E4" },
-                            { name: "E5-交通維持抽查", code: "E5" },
-                            { name: "E6-機械設備抽查", code: "E6" },
-                            { name: "E7-機電設備抽查", code: "E7" }
-                        ]
-                    },
-                    { 
-                        name: "R-會議紀錄", code: "R",
-                        subs: [
-                            { name: "W-工務會議", code: "W" },
-                            { name: "Q-主管機關督導", code: "Q" },
-                            { name: "T-技師督導", code: "T" },
-                            { name: "I-公文", code: "I" }
-                        ]
-                    },
-                    { name: "Q-不合格缺失改善資料", code: "Q", subs: [] },
-                    { name: "I-技師督導", code: "I", subs: [] },
-                    { name: "J-督導、查核簡報", code: "J", subs: [] },
-                    { name: "K-竣工結算資料", code: "K", subs: [] },
-                    { name: "M-成果報告", code: "M", subs: [] },
-                    {
-                        name: "G-管線調查資料", code: "G",
-                        subs: [
-                            { name: "G-1管線試挖", code: "G1" },
-                            { name: "G-2圖審簡報", code: "G2" },
-                            { name: "G-3各管線圖資", code: "G3" }
-                        ]
-                    }
+                    { name: "D-估驗計價(廠商估驗計價審查)", code: "" }
                 ]
             },
-            "MD 03承包商提供文件": {
-                name: "MD 03承包商提供文件",
-                code: "03",
+            "P-計畫書": {
+                code: "P",
                 subs: [
-                    { 
-                        name: "P-承包商計畫書", code: "P",
-                        subs: [
-                            { name: "Q-01施工計畫", code: "Q-01" },
-                            { name: "Q-02品質計畫", code: "Q-02" },
-                            { name: "Q-03職業安全衛生計畫", code: "Q-03" },
-                            { name: "Q-04交維計畫", code: "Q-04" },
-                            { name: "Q-05防災減災計畫", code: "Q-05" },
-                            { name: "A-01各分項計劃增列", code: "A-01" }
-                        ]
-                    },
-                    { 
-                        name: "Y-材料送審資料", code: "Y",
-                        subs: [
-                            { name: "Y-01鋼筋材料", code: "Y-01" },
-                            { name: "Y-02混凝土材料", code: "Y-02" },
-                            { name: "Y-03鋼筋混凝土管材料", code: "Y-03" },
-                            { name: "Y-04可控制性低強回填材料", code: "Y-04" },
-                            { name: "Y-05依據不同材料增列", code: "Y-05" }
-                        ]
-                    },
-                    { 
-                        name: "G-承包商施工日誌", code: "G",
-                        subs: [
-                            { name: "01_施工日誌原始檔", code: "01" },
-                            { name: "02_廠商簽章版", code: "02" }
-                        ]
-                    },
-                    { name: "D-估驗計價資料", code: "D", subs: [] },
-                    { name: "E-管制總表", code: "E", subs: [] }
+                    { name: "PS-監造計畫", code: "S" },
+                    { name: "PQ-整體計畫審查", code: "Q" },
+                    { name: "PA-分項計畫審查", code: "A" },
+                    { name: "PY-材料送審資料審查", code: "Y" }
+                ]
+            },
+            "G-日報表": {
+                code: "G",
+                subs: [
+                    { name: "G1-施工日誌", code: "1" },
+                    { name: "G2-監造日報", code: "2" }
+                ]
+            },
+            "E-監造抽查文件": {
+                code: "E",
+                subs: [
+                    { name: "E1-施工抽查文件", code: "1" },
+                    { name: "E2-材料抽查文件", code: "2" },
+                    { name: "E3-職業安全環境衛生抽查", code: "3" },
+                    { name: "E5-交通維持抽查", code: "5" },
+                    { name: "E6-機械設備抽查", code: "6" },
+                    { name: "E7-機電設備抽查", code: "7" }
+                ]
+            },
+            "R-會議紀錄": {
+                code: "R",
+                subs: [
+                    { name: "RR-定期會議(施工前/工務/進度)", code: "R" },
+                    { name: "RQ-機關督導", code: "Q" },
+                    { name: "RT-技師督導", code: "T" },
+                    { name: "RJ-查核作業", code: "J" },
+                    { name: "RI-公文", code: "I" }
+                ]
+            },
+            "Q-不合格缺失改善資料": {
+                code: "Q",
+                subs: [
+                    { name: "Q-不合格缺失改善資料", code: "" }
+                ]
+            },
+            "K-竣工結算資料": {
+                code: "K",
+                subs: [
+                    { name: "K-竣工結算資料", code: "" }
+                ]
+            },
+            "M-成果報告": {
+                code: "M",
+                subs: [
+                    { name: "M-成果報告", code: "" }
                 ]
             }
         };
 
         // --- 預設值設定 (DEFAULT_DATA) ---
         const DEFAULT_DATA = {
-            hostName: '雲林縣政府', 
+            hostName: '交通部高速公路局',
             projectName: '國道1號增設銜接台74線系統交流道工程',
-            caseNumber: '112-001', // 純數字案號
-            folderNumber: 'RT112-001-02S01001', // 還原 RT 規則
-            unitName: '睿泰工程顧問有限公司',
-            category: 'S-監造計畫', 
-            fileName: '第一版',
+            caseNumber: '案號：112-001',
+            folderNumber: 'P-S-01001', 
+            unitName: '工務部',
+            category: 'P-計畫書', // 預設為主分類
+            fileName: 'S-監造計畫', // 預設為次分類 (自動去頭)
+            version: '', // 新增：版次 (預設空白)
             spineWidth: 45, // mm
             spineHeight: 185, // mm
             unitIcon: null,
             hostIcon: null, 
-            
-            selectedSystem: "MD 02監造執行文件",
-            selectedMain: "P-計畫書",
-            selectedSub: "S-監造計畫",
+            selectedMainCat: "P-計畫書",
+            selectedSubCat: "PS-監造計畫",
             
             // --- 字體大小 (px) ---
             hostNameFontSize: 22,
@@ -214,6 +171,7 @@
             caseNumberFontSize: 14,
             categoryFontSize: 24,
             fileNameFontSize: 20,
+            versionFontSize: 14, // 新增：版次字體
             folderNumberFontSize: 18,
             unitNameFontSize: 16,
             
@@ -225,9 +183,9 @@
         const App = () => {
             const [labels, setLabels] = useState([
                 { ...DEFAULT_DATA, id: 0 },
-                { ...DEFAULT_DATA, id: 1, folderNumber: 'RT112-001-02S01002' },
-                { ...DEFAULT_DATA, id: 2, folderNumber: 'RT112-001-02S01003' },
-                { ...DEFAULT_DATA, id: 3, folderNumber: 'RT112-001-02S01004' }
+                { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-01002' },
+                { ...DEFAULT_DATA, id: 2, folderNumber: 'P-S-01003' },
+                { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-01004' }
             ]);
             
             const [activeTab, setActiveTab] = useState(0); 
@@ -239,12 +197,14 @@
 
             const activeLabel = labels[activeTab];
 
+            // 載入歷史紀錄和預設圖片
             useEffect(() => {
-                const savedHistory = localStorage.getItem('projectHistory_v2'); 
+                const savedHistory = localStorage.getItem('projectHistory');
                 if (savedHistory) {
                     setHistory(JSON.parse(savedHistory));
                 }
                 
+                // 載入預設圖片
                 const savedHostIcon = localStorage.getItem('defaultHostIcon');
                 const savedUnitIcon = localStorage.getItem('defaultUnitIcon');
                 
@@ -280,90 +240,68 @@
                 updateLabel(activeTab, name, value);
             };
 
-            const handleProjectNameChange = (e) => {
-                const newName = e.target.value;
-                updateLabel(activeTab, 'projectName', newName);
-                const found = history.find(h => h.name === newName);
-                if (found) {
-                    updateLabel(activeTab, 'caseNumber', found.caseNo);
-                }
-            };
-
-            const handleHistorySelect = (e) => {
-                const val = e.target.value;
-                if(!val) return;
-                const record = history.find(h => h.name === val);
-                updateLabel(activeTab, 'projectName', val);
-                if(record) {
-                    updateLabel(activeTab, 'caseNumber', record.caseNo);
-                }
-                e.target.value = ""; 
-            };
-
+            // 提取案號中的數字部分
             const extractCaseNo = (str) => {
                 if (!str) return "";
                 const match = str.match(/[0-9-]+/);
                 return match ? match[0] : str;
             };
 
-            const updateClassification = (sysKey, mainKey, subKey) => {
+            // 處理分類變更 (核心邏輯修改)
+            const handleCategoryChange = (mainCat, subCat) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
 
-                lbl.selectedSystem = sysKey;
-                lbl.selectedMain = mainKey;
-                lbl.selectedSub = subKey;
+                lbl.selectedMainCat = mainCat;
+                lbl.selectedSubCat = subCat;
 
-                const sysObj = CATEGORY_DATA[sysKey];
-                const mainObj = sysObj ? sysObj.subs.find(m => m.name === mainKey) : null;
-                const sysCode = sysObj ? sysObj.code : "";
-                const mainCode = mainObj ? mainObj.code : "";
-                
-                let subCode = "";
-                let categoryName = mainKey; 
-
-                if (subKey && mainObj) {
-                    const subObj = mainObj.subs.find(s => s.name === subKey);
-                    if (subObj) {
-                        subCode = subObj.code;
-                        categoryName = subKey; 
+                if (mainCat && CATEGORY_DATA[mainCat]) {
+                    const mainCode = CATEGORY_DATA[mainCat].code;
+                    
+                    // 如果 subCat 是空字串 (不選擇)，則 subObj 為 undefined
+                    const subObj = subCat ? CATEGORY_DATA[mainCat].subs.find(s => s.name === subCat) : null;
+                    const subCode = subObj ? subObj.code : '';
+                    
+                    // 1. 設定分類顯示名稱 (大字)
+                    lbl.category = mainCat;
+                    
+                    // 2. 設定卷宗名稱/副標題 (小字)
+                    // 邏輯：若次分類名稱開頭包含主分類代碼，則移除該代碼
+                    let displayFileName = subCat || "";
+                    
+                    if (displayFileName.startsWith(mainCode)) {
+                         // 例如: "PS-監造計畫" (Main=P) -> "S-監造計畫"
+                         displayFileName = displayFileName.substring(mainCode.length);
+                         // 若移除後開頭有連字號等，可選擇移除，這裡暫時保留 "S-" 結構，符合使用者 "S-監造計畫" 範例
                     }
+
+                    // 特殊處理：若完全一樣，則不顯示 (舊有邏輯，這裡可以保留或視為上述邏輯的特例)
+                    if (subCat === mainCat) {
+                        displayFileName = "";
+                    }
+                    
+                    lbl.fileName = displayFileName;
+
+
+                    // 3. 設定卷宗編號 (維持顯示不變)
+                    const cleanSubCode = subCode.replace(/[-_]/g, '');
+                    
+                    let categoryPart = "";
+                    
+                    // 保持既有邏輯：若次分類代碼與主分類代碼相同，則隱藏次分類代碼 (R-R-01 -> R-01)
+                    // 若不同，則顯示 (P-S-01)
+                    if (cleanSubCode && cleanSubCode !== mainCode) {
+                        categoryPart = `${mainCode}-${cleanSubCode}`;
+                    } else {
+                        categoryPart = `${mainCode}`;
+                    }
+                    
+                    let serial = "01001";
+                    
+                    // 組合：[分類]-[流水號]
+                    lbl.folderNumber = `${categoryPart}-${serial}`;
                 }
-
-                lbl.category = categoryName;
-
-                // V2.10 規則: RT[案號]-[系統][代碼][流水]
-                const caseNoCore = extractCaseNo(lbl.caseNumber) || "000-000";
-                const finalCode = (subCode || mainCode).replace(/-/g, '');
-                const serial = "01001";
-
-                lbl.folderNumber = `RT${caseNoCore}-${sysCode}${finalCode}${serial}`;
-
                 setLabels(newLabels);
-            };
-
-            const handleSystemChange = (e) => {
-                const sysKey = e.target.value;
-                const sysObj = CATEGORY_DATA[sysKey];
-                if (!sysObj) return;
-                const firstMain = sysObj.subs[0];
-                const firstMainKey = firstMain ? firstMain.name : "";
-                const firstSub = firstMain && firstMain.subs.length > 0 ? firstMain.subs[0] : null;
-                const firstSubKey = firstSub ? firstSub.name : "";
-                updateClassification(sysKey, firstMainKey, firstSubKey);
-            };
-
-            const handleMainChange = (e) => {
-                const mainKey = e.target.value;
-                const sysObj = CATEGORY_DATA[activeLabel.selectedSystem];
-                const mainObj = sysObj.subs.find(m => m.name === mainKey);
-                const firstSub = mainObj && mainObj.subs.length > 0 ? mainObj.subs[0] : null;
-                const firstSubKey = firstSub ? firstSub.name : "";
-                updateClassification(activeLabel.selectedSystem, mainKey, firstSubKey);
-            };
-
-            const handleSubChange = (e) => {
-                updateClassification(activeLabel.selectedSystem, activeLabel.selectedMain, e.target.value);
             };
 
             const handleImageUpload = (e) => {
@@ -374,79 +312,123 @@
                     reader.onloadend = () => {
                         const result = reader.result;
                         updateLabel(activeTab, name, result); 
-                        if (name === 'hostIcon') localStorage.setItem('defaultHostIcon', result);
-                        else if (name === 'unitIcon') localStorage.setItem('defaultUnitIcon', result);
+                        
+                        // 自動儲存到 LocalStorage
+                        if (name === 'hostIcon') {
+                            localStorage.setItem('defaultHostIcon', result);
+                        } else if (name === 'unitIcon') {
+                            localStorage.setItem('defaultUnitIcon', result);
+                        }
                     };
                     reader.readAsDataURL(file);
                 }
             };
             
+            // 移除圖片並清除記憶
             const handleRemoveImage = (name) => {
                 updateLabel(activeTab, name, null);
-                if (name === 'hostIcon') localStorage.removeItem('defaultHostIcon');
-                else if (name === 'unitIcon') localStorage.removeItem('defaultUnitIcon');
+                if (name === 'hostIcon') {
+                    localStorage.removeItem('defaultHostIcon');
+                } else if (name === 'unitIcon') {
+                    localStorage.removeItem('defaultUnitIcon');
+                }
             };
 
             const copyFirstToAll = () => {
-                if (!confirm("確定複製？")) return;
+                if (!confirm("確定要將「標籤 1」的內容複製到其他所有標籤嗎？\n(這將覆蓋其他標籤目前的設定)")) return;
+                
                 const source = labels[0];
-                setLabels(prev => prev.map((lbl, i) => i === 0 ? lbl : { ...source, id: i }));
+                setLabels(prev => prev.map((lbl, i) => {
+                    if (i === 0) return lbl;
+                    return { ...source, id: i }; 
+                }));
+                alert("已複製完成！您可以切換分頁修改各標籤的編號。");
             };
 
             const resetToDefaults = () => {
-                if (!confirm("確定重置？")) return;
+                if (!confirm("確定要重置目前標籤的所有設定為預設值嗎？")) return;
+                
                 const currentId = activeLabel.id;
                 const currentFolderNum = activeLabel.folderNumber;
-                setLabels(prev => prev.map((lbl, i) => i !== activeTab ? lbl : { 
+                
+                const newLabel = { 
                     ...DEFAULT_DATA, 
-                    id: currentId, 
+                    id: currentId,
                     folderNumber: currentFolderNum,
-                    hostIcon: localStorage.getItem('defaultHostIcon'),
-                    unitIcon: localStorage.getItem('defaultUnitIcon')
+                    // 保持已載入的預設圖片
+                    hostIcon: localStorage.getItem('defaultHostIcon') || null,
+                    unitIcon: localStorage.getItem('defaultUnitIcon') || null,
+                };
+                
+                setLabels(prev => prev.map((lbl, i) => {
+                    if (i !== activeTab) return lbl;
+                    return newLabel;
                 }));
             };
 
             const saveToHistory = () => {
                 if (!activeLabel.projectName.trim()) return;
-                const newEntry = { name: activeLabel.projectName, caseNo: activeLabel.caseNumber };
-                const filtered = history.filter(h => h.name !== activeLabel.projectName);
-                const newHistory = [newEntry, ...filtered].slice(0, 15);
+                const newHistory = [...new Set([activeLabel.projectName, ...history])].slice(0, 10);
                 setHistory(newHistory);
-                localStorage.setItem('projectHistory_v2', JSON.stringify(newHistory));
+                localStorage.setItem('projectHistory', JSON.stringify(newHistory));
+            };
+            
+            const handleHistorySelect = (val) => {
+                updateLabel(activeTab, 'projectName', val);
             };
 
             const clearHistory = () => {
                 setHistory([]);
-                localStorage.removeItem('projectHistory_v2');
+                localStorage.removeItem('projectHistory');
             };
 
             const generatePDF = async (action = 'download') => {
                 if (!printRef.current || !libsLoaded) {
-                    if (!libsLoaded) alert("系統載入中...");
+                    if (!libsLoaded) alert("系統正在載入 PDF 核心元件，請稍後再試...");
                     return;
                 }
                 setIsSaving(true);
+
                 try {
-                    saveToHistory(); 
+                    saveToHistory();
                     const html2canvas = window.html2canvas;
                     const { jsPDF } = window.jspdf;
-                    const canvas = await html2canvas(printRef.current, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+
+                    const canvas = await html2canvas(printRef.current, {
+                        scale: 3,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    });
+
                     const imgData = canvas.toDataURL('image/png');
                     const pdf = new jsPDF('p', 'mm', 'a4');
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-                    if (action === 'download') pdf.save(`${activeLabel.projectName}.pdf`);
-                    else await uploadToGoogleDrive(pdf);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+                    if (action === 'download') {
+                        pdf.save(`${activeLabel.projectName}-標籤列印.pdf`);
+                    } else if (action === 'drive') {
+                        await uploadToGoogleDrive(pdf);
+                    }
+                    
                 } catch (error) {
-                    console.error(error);
-                    alert("錯誤");
+                    console.error("生成失敗:", error);
+                    alert("生成 PDF 時發生錯誤，請稍後再試。");
                 } finally {
                     setIsSaving(false);
                 }
             };
 
             const uploadToGoogleDrive = async (pdfDoc) => {
-                alert(`模擬上傳至 Google Drive: ${activeLabel.projectName}`);
-                pdfDoc.save(`${activeLabel.projectName}-Backup.pdf`);
+                alert(`
+                【Google Drive 同步模擬】
+                系統已準備好將檔案上傳。
+                由於安全限制，請在下載 PDF 後手動拖入您的 Google 共用雲端硬碟。
+                `);
+                pdfDoc.save(`${activeLabel.projectName}-Drive備份.pdf`);
             };
 
             // 書背渲染組件
@@ -460,38 +442,45 @@
                         boxSizing: 'border-box'
                     }}
                 >
-                    {/* 1. 主辦單位 + Logo */}
+                    {/* 1. 最上方：主辦單位 + Logo */}
                     <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-1 mb-1 min-h-[15%]">
                         {data.hostIcon && (
-                            <img src={data.hostIcon} className="object-contain mb-1" style={{ width: `${data.hostIconSize}px` }} />
+                            <img 
+                                src={data.hostIcon} 
+                                alt="Host Logo" 
+                                className="object-contain mb-1"
+                                style={{ width: `${data.hostIconSize}px` }} 
+                            />
                         )}
                         <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap" style={{ fontSize: `${data.hostNameFontSize}px` }}>
                             {data.hostName}
                         </h3>
                     </div>
 
-                    {/* 2. 工程名稱 + 案號 (純數字) */}
+                    {/* 2. 上方：工程名稱 + 案號區塊 */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
                         <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
                             <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
                                 {data.projectName}
                             </h3>
                         </div>
+                        
+                        {/* 案號與橫線 */}
                         {data.caseNumber && (
                             <>
                                 <div className="w-full border-t-2 border-black"></div>
                                 <div className="w-full py-1 text-center">
-                                    <h3 className="font-bold w-full break-words leading-tight" style={{ fontSize: `${data.caseNumberFontSize}px` }}>
-                                        {/* 直接顯示案號，不加"案號-" */}
-                                        {data.caseNumber}
+                                    <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap" style={{ fontSize: `${data.caseNumberFontSize}px` }}>
+                                            {data.caseNumber}
                                     </h3>
                                 </div>
                             </>
                         )}
                     </div>
 
-                    {/* 3. 中間核心 */}
+                    {/* 3. 中間：核心資訊 */}
                     <div className="flex-1 w-full flex flex-col items-center justify-between">
+                        {/* 調整：justify-start (靠上對齊) + pt-2 (上方留白) + 橫式 */}
                         <div className="flex flex-col items-center gap-2 flex-grow justify-start py-2 pt-2">
                             <div 
                                 className="font-black tracking-widest py-2 px-1 flex items-center justify-center whitespace-pre-wrap text-center"
@@ -499,6 +488,7 @@
                             >
                                 {data.category}
                             </div>
+                            
                             <div 
                                 className="font-bold writing-vertical-lr tracking-wider text-slate-800 whitespace-pre-wrap"
                                 style={{ fontSize: `${data.fileNameFontSize}px` }}
@@ -506,39 +496,59 @@
                                 {data.fileName}
                             </div>
                         </div>
-                        <div className="w-full border-t-2 border-black pt-1 mt-1 text-center">
+
+                        {/* 編號區 (上方增加橫線) */}
+                        <div className="w-full border-t-2 border-black pt-1 mt-1 text-center flex flex-col items-center">
+                            {/* 新增：版次顯示 (若有輸入才顯示) */}
+                            {data.version && (
+                                <div className="font-bold mb-1" style={{ fontSize: `${data.versionFontSize}px` }}>
+                                    {data.version}
+                                </div>
+                            )}
                             <div className="font-mono font-bold whitespace-pre-wrap" style={{ fontSize: `${data.folderNumberFontSize}px` }}>
                                 {data.folderNumber}
                             </div>
                         </div>
                     </div>
 
-                    {/* 4. 單位資訊 */}
+                    {/* 4. 下方：單位資訊 */}
                     <div className="w-full flex flex-col justify-start items-center border-t-2 border-black pt-1 mt-1 min-h-[15%]">
                         <h4 className="font-bold mb-1 whitespace-pre-wrap" style={{ fontSize: `${data.unitNameFontSize}px` }}>{data.unitName}</h4>
                         {data.unitIcon && (
-                            <img src={data.unitIcon} className="object-contain" style={{ width: `${data.unitIconSize}px` }} />
+                            <img 
+                                src={data.unitIcon} 
+                                alt="Logo" 
+                                className="object-contain"
+                                style={{ width: `${data.unitIconSize}px` }} 
+                            />
                         )}
                     </div>
                 </div>
             );
 
-            // 控制面板元件 (FontSizeControl & ImageUploadControl)
+            // 控制面板中的字體調整列
             const FontSizeControl = ({ label, field, value, min=10, max=60 }) => (
-                <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center justify-between gap-2 mb-2">
                     <label className="text-xs text-slate-500 w-24 flex-shrink-0">{label}</label>
-                    <input type="range" min={min} max={max} value={value} onChange={(e) => updateLabel(activeTab, field, Number(e.target.value))} className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
+                    <input 
+                        type="range" 
+                        min={min} 
+                        max={max} 
+                        value={value}
+                        onChange={(e) => updateLabel(activeTab, field, Number(e.target.value))}
+                        className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                    />
                     <span className="text-xs text-slate-500 w-6 text-right">{value}</span>
                 </div>
             );
 
-            // Image Upload Control Component
+            // 圖片上傳控制項
             const ImageUploadControl = ({ label, name, iconValue, iconSizeField, iconSizeValue }) => (
                 <div className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
                     <div className="text-xs font-bold text-slate-500 mb-2">{label}</div>
                     <div className="flex items-center gap-3 mb-2">
                         <label className="cursor-pointer bg-white border border-slate-300 hover:bg-slate-50 px-3 py-2 rounded text-sm flex items-center gap-2 transition w-full justify-center">
-                            <div className="flex items-center gap-2"><IconUpload size={14} /> 選擇圖片</div>
+                            <div className="flex items-center gap-2"><IconUpload /> 選擇圖片</div>
                             <input type="file" accept="image/*" name={name} className="hidden" onChange={handleImageUpload} />
                         </label>
                         {iconValue && (
@@ -553,131 +563,369 @@
 
             return (
                 <div className="min-h-screen font-sans text-slate-800 flex flex-col md:flex-row">
+                    {/* 左側：控制面板 */}
                     <div className="w-full md:w-1/3 bg-white shadow-xl p-6 overflow-y-auto h-screen z-10 no-print">
                         <div className="mb-4 border-b pb-4">
                             <h1 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
-                                <IconFileText /> 工程卷宗大師
+                                <IconFileText />
+                                工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">V2.15 修復調整功能版</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.10 (名稱優化版)</p>
                         </div>
 
-                        {/* 標籤 Tabs */}
+                        {/* 標籤切換分頁 */}
                         <div className="flex gap-1 mb-4 border-b border-slate-200 pb-1 overflow-x-auto">
                             {labels.map((_, idx) => (
-                                <button key={idx} onClick={() => setActiveTab(idx)} className={`px-4 py-2 text-sm font-bold rounded-t-lg transition whitespace-nowrap ${activeTab === idx ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600'}`}>標籤 {idx + 1}</button>
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveTab(idx)}
+                                    className={`px-4 py-2 text-sm font-bold rounded-t-lg transition whitespace-nowrap ${
+                                        activeTab === idx 
+                                        ? 'bg-blue-600 text-white shadow-md' 
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    }`}
+                                >
+                                    標籤 {idx + 1}
+                                </button>
                             ))}
                         </div>
 
-                        <div className="space-y-4 pb-20">
-                            {/* 主辦 & 工程 & 案號 */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500">主辦單位 (可換行)</label>
-                                <textarea name="hostName" value={activeLabel.hostName} onChange={handleInputChange} rows="2" className="w-full p-2 border rounded text-sm resize-none" />
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-xs text-slate-400">正在編輯: 標籤 {activeTab + 1}</span>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={resetToDefaults}
+                                    className="text-xs flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200 transition"
+                                    title="重置當前標籤為預設值"
+                                >
+                                    <IconRefresh size={12} /> 重置
+                                </button>
+                                <button 
+                                    onClick={copyFirstToAll}
+                                    className="text-xs flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-100 transition"
+                                    title="將標籤 1 的所有內容複製到其他 3 張標籤"
+                                >
+                                    <IconCopy size={12} /> 複製標籤1到全部
+                                </button>
                             </div>
+                        </div>
+
+                        <div className="space-y-6 pb-20">
+                            
+                            {/* 主辦單位 */}
                             <div className="space-y-2">
-                                <div className="flex justify-between"><label className="text-xs font-bold text-slate-500">工程名稱</label><button onClick={clearHistory} className="text-xs text-red-400 flex items-center gap-1"><IconTrash2 size={10}/>清除紀錄</button></div>
-                                <textarea name="projectName" value={activeLabel.projectName} onChange={handleProjectNameChange} rows="2" className="w-full p-2 border rounded text-sm resize-none" />
+                                <label className="text-sm font-semibold text-slate-700">主辦單位名稱 (可換行)</label>
+                                <textarea
+                                    name="hostName"
+                                    value={activeLabel.hostName}
+                                    onChange={handleInputChange}
+                                    rows="2"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                />
+                            </div>
+
+                            {/* 工程名稱 */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-semibold text-slate-700">工程名稱 (可換行)</label>
+                                    {history.length > 0 && (
+                                        <button onClick={clearHistory} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
+                                            <IconTrash2 size={12} /> 清除紀錄
+                                        </button>
+                                    )}
+                                </div>
+                                <textarea
+                                    name="projectName"
+                                    value={activeLabel.projectName}
+                                    onChange={handleInputChange}
+                                    rows="3"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    placeholder="輸入工程名稱..."
+                                />
                                 {history.length > 0 && (
-                                    <select onChange={handleHistorySelect} className="w-full p-1 text-xs border rounded bg-slate-50 text-slate-600">
-                                        <option value="">-- 快速選取歷史工程 --</option>
-                                        {history.map((h, i) => <option key={i} value={h.name}>{h.name}</option>)}
-                                    </select>
+                                    <div className="mt-1">
+                                        <select 
+                                            onChange={(e) => {
+                                                if(e.target.value) handleHistorySelect(e.target.value);
+                                                e.target.value = ""; // 重置選擇以允許重複選
+                                            }}
+                                            className="w-full p-2 text-xs border border-slate-200 rounded text-slate-600"
+                                        >
+                                            <option value="">-- 從歷史紀錄選取 --</option>
+                                            {history.map((item, idx) => (
+                                                <option key={idx} value={item}>{item}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 )}
                             </div>
+
+                            {/* 新增：案號 */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500">案號 (自動帶入/手動修改)</label>
-                                <input type="text" name="caseNumber" value={activeLabel.caseNumber} onChange={handleInputChange} className="w-full p-2 border rounded text-sm" placeholder="112-001" />
-                            </div>
-
-                            {/* 三層分類選單 */}
-                            <div className="p-3 bg-blue-50 rounded border border-blue-100 space-y-2">
-                                <div className="flex items-center gap-2 text-blue-700 font-bold text-sm"><IconFolderOpen size={16}/> 文件分類系統</div>
-                                <select value={activeLabel.selectedSystem} onChange={handleSystemChange} className="w-full p-1 text-sm border rounded">
-                                    {Object.keys(CATEGORY_DATA).map(k => <option key={k} value={k}>{k}</option>)}
-                                </select>
-                                <select value={activeLabel.selectedMain} onChange={handleMainChange} className="w-full p-1 text-sm border rounded">
-                                    {CATEGORY_DATA[activeLabel.selectedSystem] && CATEGORY_DATA[activeLabel.selectedSystem].subs ? 
-                                        CATEGORY_DATA[activeLabel.selectedSystem].subs.map(m => <option key={m.name} value={m.name}>{m.name}</option>) : null
-                                    }
-                                </select>
-                                <select value={activeLabel.selectedSub} onChange={handleSubChange} className="w-full p-1 text-sm border rounded">
-                                    {(() => {
-                                        const sys = CATEGORY_DATA[activeLabel.selectedSystem];
-                                        if (!sys) return <option value="">(請選擇系統)</option>;
-                                        const main = sys.subs.find(m => m.name === activeLabel.selectedMain);
-                                        return main && main.subs.length > 0 ? main.subs.map(s => <option key={s.name} value={s.name}>{s.name}</option>) : <option value="">(無次分類)</option>;
-                                    })()}
-                                </select>
-                                <textarea name="category" value={activeLabel.category} onChange={handleInputChange} rows="2" className="w-full p-2 border rounded text-sm resize-none" placeholder="分類顯示名稱..." />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div><label className="text-xs font-bold text-slate-500">卷宗編號</label><input type="text" name="folderNumber" value={activeLabel.folderNumber} onChange={handleInputChange} className="w-full p-2 border rounded text-sm font-mono" /></div>
-                                <div><label className="text-xs font-bold text-slate-500">卷宗名稱</label><textarea name="fileName" value={activeLabel.fileName} onChange={handleInputChange} rows="1" className="w-full p-2 border rounded text-sm resize-none" /></div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-500">單位名稱</label>
-                                <textarea name="unitName" value={activeLabel.unitName} onChange={handleInputChange} rows="1" className="w-full p-2 border rounded text-sm resize-none" />
-                            </div>
-
-                            {/* 設定區：圖片 */}
-                            <div className="p-3 bg-slate-50 rounded border space-y-3">
-                                <div className="text-sm font-bold text-slate-600 flex gap-2 border-b pb-2"><IconSettings size={16}/> 圖片設定</div>
-                                <ImageUploadControl 
-                                    label="主辦單位 Logo" 
-                                    name="hostIcon" 
-                                    iconValue={activeLabel.hostIcon} 
-                                    iconSizeField="hostIconSize" 
-                                    iconSizeValue={activeLabel.hostIconSize} 
-                                />
-                                <ImageUploadControl 
-                                    label="單位 Logo" 
-                                    name="unitIcon" 
-                                    iconValue={activeLabel.unitIcon} 
-                                    iconSizeField="unitIconSize" 
-                                    iconSizeValue={activeLabel.unitIconSize} 
+                                <label className="text-sm font-semibold text-slate-700">案號 (顯示於工程名稱下方)</label>
+                                <textarea
+                                    name="caseNumber"
+                                    value={activeLabel.caseNumber}
+                                    onChange={handleInputChange}
+                                    rows="1"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    placeholder="例如：案號：112-001"
                                 />
                             </div>
 
-                            {/* 設定區：字體 */}
-                            <div className="p-3 bg-slate-50 rounded border space-y-3">
-                                <div className="text-sm font-bold text-slate-600 flex gap-2 border-b pb-2"><IconType size={16}/> 字體大小設定</div>
-                                <FontSizeControl label="主辦字體" field="hostNameFontSize" value={activeLabel.hostNameFontSize} />
-                                <FontSizeControl label="工程字體" field="projectNameFontSize" value={activeLabel.projectNameFontSize} />
-                                <FontSizeControl label="案號字體" field="caseNumberFontSize" value={activeLabel.caseNumberFontSize} />
-                                <FontSizeControl label="分類字體" field="categoryFontSize" value={activeLabel.categoryFontSize} />
-                                <FontSizeControl label="卷宗名稱" field="fileNameFontSize" value={activeLabel.fileNameFontSize} />
-                                <FontSizeControl label="編號字體" field="folderNumberFontSize" value={activeLabel.folderNumberFontSize} />
-                                <FontSizeControl label="單位字體" field="unitNameFontSize" value={activeLabel.unitNameFontSize} />
+                            {/* 分類系統 */}
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 space-y-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="text-blue-600"><IconFolderOpen /></div>
+                                    <span className="font-bold text-blue-700">文件管理系統分類</span>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">總分類</label>
+                                        <select
+                                            value={activeLabel.selectedMainCat}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                const sub = CATEGORY_DATA[val] ? CATEGORY_DATA[val].subs[0].name : '';
+                                                handleCategoryChange(val, sub);
+                                            }}
+                                            className="w-full p-2 border border-blue-200 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                        >
+                                            {Object.keys(CATEGORY_DATA).map(key => (
+                                                <option key={key} value={key}>{key}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">次分類 (選擇將自動填入副標題)</label>
+                                        <select
+                                            value={activeLabel.selectedSubCat}
+                                            onChange={(e) => handleCategoryChange(activeLabel.selectedMainCat, e.target.value)}
+                                            className="w-full p-2 border border-blue-200 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                        >
+                                            {/* 新增：不選擇選項 */}
+                                            <option value="">(無 / 不選擇)</option>
+
+                                            {activeLabel.selectedMainCat && CATEGORY_DATA[activeLabel.selectedMainCat] && CATEGORY_DATA[activeLabel.selectedMainCat].subs.map(sub => (
+                                                <option key={sub.name} value={sub.name}>
+                                                    {sub.name} ({sub.code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* 新增：中間分類內容編輯 */}
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">中間分類內容 (大字)</label>
+                                        <textarea
+                                            name="category"
+                                            value={activeLabel.category}
+                                            onChange={handleInputChange}
+                                            rows="2"
+                                            className="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none resize-none"
+                                            placeholder="可手動修改或換行..."
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <div className="flex gap-2 pt-2">
-                                <button onClick={resetToDefaults} className="flex-1 py-2 bg-slate-200 hover:bg-slate-300 rounded text-sm">重置</button>
-                                <button onClick={() => generatePDF('download')} className="flex-[2] py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-bold flex justify-center gap-2"><IconPrinter size={16}/> 下載 PDF</button>
+
+                            {/* 卷宗詳細資訊 */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-sm font-semibold text-slate-700">卷宗編號 (自動依規則產生)</label>
+                                    <input
+                                        type="text"
+                                        name="folderNumber"
+                                        value={activeLabel.folderNumber}
+                                        onChange={handleInputChange}
+                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono tracking-wide"
+                                    />
+                                </div>
                             </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">卷宗名稱 / 副標題 (次分類會自動填入此處)</label>
+                                <textarea
+                                    name="fileName"
+                                    value={activeLabel.fileName}
+                                    onChange={handleInputChange}
+                                    rows="1"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                />
+                            </div>
+
+                            {/* 新增：版次欄位 */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">版次 (選填)</label>
+                                <input
+                                    type="text"
+                                    name="version"
+                                    value={activeLabel.version}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="例如：第一版 (可留白)"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-700">單位名稱</label>
+                                <textarea
+                                    name="unitName"
+                                    value={activeLabel.unitName}
+                                    onChange={handleInputChange}
+                                    rows="1"
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                />
+                            </div>
+
+                            {/* 外觀與字體詳細設定 */}
+                            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4 mt-2">
+                                <div className="flex items-center gap-2 mb-2 border-b border-slate-200 pb-2">
+                                    <div className="text-slate-500"><IconType /></div>
+                                    <span className="font-bold text-slate-600">排版設定</span>
+                                </div>
+                                
+                                {/* 尺寸設定 */}
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">寬度 (mm)</label>
+                                        <input
+                                            type="number"
+                                            name="spineWidth"
+                                            value={activeLabel.spineWidth}
+                                            onChange={(e) => updateLabel(activeTab, 'spineWidth', Number(e.target.value))}
+                                            className="w-full p-2 border rounded text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 mb-1 block">高度 (mm)</label>
+                                        <input
+                                            type="number"
+                                            name="spineHeight"
+                                            value={activeLabel.spineHeight}
+                                            onChange={(e) => updateLabel(activeTab, 'spineHeight', Number(e.target.value))}
+                                            className="w-full p-2 border rounded text-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* 字體大小細節控制 */}
+                                <div className="space-y-1">
+                                    <div className="text-xs font-bold text-slate-400 mb-2">個別字體大小 (px)</div>
+                                    <FontSizeControl label="主辦單位" field="hostNameFontSize" value={activeLabel.hostNameFontSize} />
+                                    <FontSizeControl label="工程名稱" field="projectNameFontSize" value={activeLabel.projectNameFontSize} />
+                                    <FontSizeControl label="案號" field="caseNumberFontSize" value={activeLabel.caseNumberFontSize} />
+                                    <FontSizeControl label="中間分類" field="categoryFontSize" value={activeLabel.categoryFontSize} min={16} max={48} />
+                                    <FontSizeControl label="卷宗名稱" field="fileNameFontSize" value={activeLabel.fileNameFontSize} />
+                                    <FontSizeControl label="版次" field="versionFontSize" value={activeLabel.versionFontSize} />
+                                    <FontSizeControl label="編號" field="folderNumberFontSize" value={activeLabel.folderNumberFontSize} />
+                                    <FontSizeControl label="單位名稱" field="unitNameFontSize" value={activeLabel.unitNameFontSize} />
+                                </div>
+
+                                {/* 圖片設定 */}
+                                <div className="mt-4 pt-4 border-t border-slate-200">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="text-slate-500"><IconImage /></div>
+                                        <span className="font-bold text-slate-600">Logo 圖示設定</span>
+                                    </div>
+                                    
+                                    <ImageUploadControl 
+                                        label="1. 主辦單位 Logo (上方)" 
+                                        name="hostIcon" 
+                                        iconValue={activeLabel.hostIcon} 
+                                        iconSizeField="hostIconSize" 
+                                        iconSizeValue={activeLabel.hostIconSize} 
+                                    />
+
+                                    <ImageUploadControl 
+                                        label="2. 單位 Logo (下方)" 
+                                        name="unitIcon" 
+                                        iconValue={activeLabel.unitIcon} 
+                                        iconSizeField="unitIconSize" 
+                                        iconSizeValue={activeLabel.unitIconSize} 
+                                    />
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                    {/* 預覽區 */}
-                    <div className="w-full md:w-2/3 bg-slate-200 p-8 flex flex-col items-center overflow-auto">
-                        <div className="flex gap-2 mb-4 bg-white p-1 rounded shadow-sm">
-                            <button onClick={() => setPrintMode('single')} className={`px-3 py-1 text-sm rounded ${printMode==='single'?'bg-blue-100 text-blue-800 font-bold':''}`}>單張預覽</button>
-                            <button onClick={() => setPrintMode('4-up')} className={`px-3 py-1 text-sm rounded ${printMode==='4-up'?'bg-blue-100 text-blue-800 font-bold':''}`}>A4 四聯</button>
+                    {/* 右側：預覽區 */}
+                    <div className="w-full md:w-2/3 bg-slate-200 p-8 flex flex-col items-center justify-start overflow-auto">
+                        
+                        <div className="w-full max-w-[210mm] flex justify-between items-center mb-4 no-print">
+                            <h2 className="text-slate-500 font-medium flex items-center gap-2">
+                                <IconLayout size={18} /> A4 預覽效果 (實際列印區域)
+                            </h2>
+
+                            {/* 切換顯示模式 */}
+                            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-1 flex">
+                                <button
+                                    onClick={() => setPrintMode('single')}
+                                    className={`px-3 py-1 text-sm rounded flex items-center gap-1 ${printMode === 'single' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    <IconLayout size={14} /> 單張居中
+                                </button>
+                                <button
+                                    onClick={() => setPrintMode('4-up')}
+                                    className={`px-3 py-1 text-sm rounded flex items-center gap-1 ${printMode === '4-up' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    <IconGrid size={14} /> 一頁四張
+                                </button>
+                            </div>
                         </div>
-                        <div className="bg-white shadow-2xl relative" style={{ width: '210mm', height: '297mm', transform: 'scale(0.8)', transformOrigin: 'top center' }}>
-                            <div ref={printRef} className="w-full h-full bg-white relative">
+
+                        {/* A4 畫布 (模擬) */}
+                        <div 
+                            className="bg-white shadow-2xl relative overflow-hidden origin-top"
+                            style={{
+                                width: '210mm',
+                                height: '297mm',
+                                transform: 'scale(0.8)', // 縮放以適應螢幕
+                                minHeight: '297mm' // 確保高度足夠
+                            }}
+                        >
+                            {/* 可列印區域 (A4) */}
+                            <div 
+                                ref={printRef} 
+                                className="w-full h-full bg-white relative"
+                            >
                                 {printMode === 'single' ? (
-                                    <div className="w-full h-full flex justify-center items-center"><SpineLabel data={activeLabel} /></div>
+                                    // 模式一：單張居中 (只顯示當前編輯的標籤)
+                                    <div className="w-full h-full flex justify-center items-center">
+                                        <SpineLabel data={activeLabel} />
+                                    </div>
                                 ) : (
+                                    // 模式二：一頁四張 (水平排列)
                                     <div className="w-full h-full flex justify-center items-center">
                                         <div className="flex gap-0 items-center justify-center">
-                                            {labels.map((lbl, idx) => <SpineLabel key={lbl.id} data={lbl} />)}
+                                            {labels.map((lbl, idx) => (
+                                                <SpineLabel key={lbl.id} data={lbl} />
+                                            ))}
+                                        </div>
+                                        
+                                        {/* 輔助說明：這條線不會印出來，僅在預覽顯示 */}
+                                        <div className="absolute bottom-10 left-0 w-full text-center text-slate-300 text-xs no-print">
+                                            系統自動水平置中排列 4 張標籤
                                         </div>
                                     </div>
                                 )}
                             </div>
                         </div>
+
+                        {/* 下載按鈕 (放在右側下方浮動或固定位置) */}
+                        <div className="mt-8 flex gap-3 no-print z-50">
+                             <button 
+                                onClick={() => generatePDF('download')}
+                                disabled={isSaving || !libsLoaded}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 transition font-bold text-lg disabled:opacity-50"
+                            >
+                                {isSaving ? '處理中...' : <><IconPrinter /> 下載 PDF</>}
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             );
