@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.10 (名稱優化版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.10 (雲林專用版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -20,11 +20,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* 直書設定 */
+        /* 直書設定 - 增加字型設定以避免跑位 */
         .writing-vertical-lr {
             writing-mode: vertical-lr;
             text-orientation: upright;
             letter-spacing: 0.1em;
+            font-feature-settings: "vrt2" 0; /* 修正部分瀏覽器直書偏移 */
         }
         /* 隱藏列印時不必要的元素 */
         @media print {
@@ -66,7 +67,7 @@
         const IconTrash2 = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
         const IconFolderOpen = () => <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>;
         const IconSettings = () => <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
-        const IconUpload = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
+        const IconUpload = () => <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
         const IconPrinter = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
         const IconCloud = ({size=20}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>;
         const IconLayout = ({size=18}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>;
@@ -75,6 +76,14 @@
         const IconType = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>;
         const IconImage = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>;
         const IconRefresh = ({size=16}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+
+        // --- 雲林縣主辦單位清單 ---
+        const YUNLIN_HOSTS = [
+            "雲林縣政府",
+            "斗六市公所", "斗南鎮公所", "虎尾鎮公所", "西螺鎮公所", "土庫鎮公所", "北港鎮公所",
+            "古坑鄉公所", "大埤鄉公所", "莿桐鄉公所", "林內鄉公所", "二崙鄉公所", "崙背鄉公所", "麥寮鄉公所",
+            "東勢鄉公所", "褒忠鄉公所", "臺西鄉公所", "元長鄉公所", "四湖鄉公所", "口湖鄉公所", "水林鄉公所"
+        ];
 
         // --- 資料定義 ---
         const CATEGORY_DATA = {
@@ -150,16 +159,16 @@
 
         // --- 預設值設定 (DEFAULT_DATA) ---
         const DEFAULT_DATA = {
-            hostName: '交通部高速公路局',
-            projectName: '國道1號增設銜接台74線系統交流道工程',
+            hostName: '雲林縣政府', // 預設為雲林縣政府
+            projectName: '', // 預設空白，顯示灰字提示
             caseNumber: '案號：112-001',
             folderNumber: 'P-S-01001', 
-            unitName: '工務部',
-            category: 'P-計畫書', // 預設為主分類
-            fileName: 'S-監造計畫', // 預設為次分類 (自動去頭)
-            version: '', // 新增：版次 (預設空白)
-            spineWidth: 45, // mm
-            spineHeight: 185, // mm
+            unitName: '睿泰工程顧問有限公司', // 固定單位
+            category: 'P-計畫書', 
+            fileName: 'S-監造計畫', 
+            version: '', 
+            spineWidth: 45, 
+            spineHeight: 185, 
             unitIcon: null,
             hostIcon: null, 
             selectedMainCat: "P-計畫書",
@@ -171,7 +180,7 @@
             caseNumberFontSize: 14,
             categoryFontSize: 24,
             fileNameFontSize: 20,
-            versionFontSize: 14, // 新增：版次字體
+            versionFontSize: 14, 
             folderNumberFontSize: 18,
             unitNameFontSize: 16,
             
@@ -258,7 +267,6 @@
                 if (mainCat && CATEGORY_DATA[mainCat]) {
                     const mainCode = CATEGORY_DATA[mainCat].code;
                     
-                    // 如果 subCat 是空字串 (不選擇)，則 subObj 為 undefined
                     const subObj = subCat ? CATEGORY_DATA[mainCat].subs.find(s => s.name === subCat) : null;
                     const subCode = subObj ? subObj.code : '';
                     
@@ -266,30 +274,23 @@
                     lbl.category = mainCat;
                     
                     // 2. 設定卷宗名稱/副標題 (小字)
-                    // 邏輯：若次分類名稱開頭包含主分類代碼，則移除該代碼
                     let displayFileName = subCat || "";
                     
                     if (displayFileName.startsWith(mainCode)) {
-                         // 例如: "PS-監造計畫" (Main=P) -> "S-監造計畫"
                          displayFileName = displayFileName.substring(mainCode.length);
-                         // 若移除後開頭有連字號等，可選擇移除，這裡暫時保留 "S-" 結構，符合使用者 "S-監造計畫" 範例
                     }
 
-                    // 特殊處理：若完全一樣，則不顯示 (舊有邏輯，這裡可以保留或視為上述邏輯的特例)
                     if (subCat === mainCat) {
                         displayFileName = "";
                     }
                     
                     lbl.fileName = displayFileName;
 
-
-                    // 3. 設定卷宗編號 (維持顯示不變)
+                    // 3. 設定卷宗編號
                     const cleanSubCode = subCode.replace(/[-_]/g, '');
                     
                     let categoryPart = "";
                     
-                    // 保持既有邏輯：若次分類代碼與主分類代碼相同，則隱藏次分類代碼 (R-R-01 -> R-01)
-                    // 若不同，則顯示 (P-S-01)
                     if (cleanSubCode && cleanSubCode !== mainCode) {
                         categoryPart = `${mainCode}-${cleanSubCode}`;
                     } else {
@@ -298,7 +299,6 @@
                     
                     let serial = "01001";
                     
-                    // 組合：[分類]-[流水號]
                     lbl.folderNumber = `${categoryPart}-${serial}`;
                 }
                 setLabels(newLabels);
@@ -382,6 +382,7 @@
                 localStorage.removeItem('projectHistory');
             };
 
+            // 修正後的 PDF 生成函式：使用獨立的 A4 容器確保不跑位
             const generatePDF = async (action = 'download') => {
                 if (!printRef.current || !libsLoaded) {
                     if (!libsLoaded) alert("系統正在載入 PDF 核心元件，請稍後再試...");
@@ -394,13 +395,54 @@
                     const html2canvas = window.html2canvas;
                     const { jsPDF } = window.jspdf;
 
-                    const canvas = await html2canvas(printRef.current, {
-                        scale: 3,
+                    // 1. 建立一個不可見但存在於 DOM 的 A4 容器
+                    // 這裡寬度設為 794px (約 210mm @ 96dpi), 高度 1123px (約 297mm)
+                    // 使用 fixed 定位移出視窗外，避免影響當前畫面
+                    const tempContainer = document.createElement('div');
+                    tempContainer.style.position = 'fixed'; 
+                    tempContainer.style.top = '0';
+                    tempContainer.style.left = '0';
+                    tempContainer.style.width = '794px'; // 210mm
+                    tempContainer.style.height = '1123px'; // 297mm
+                    tempContainer.style.zIndex = '-9999';
+                    tempContainer.style.backgroundColor = '#ffffff';
+                    tempContainer.style.margin = '0';
+                    tempContainer.style.padding = '0';
+                    document.body.appendChild(tempContainer);
+
+                    // 2. 複製目前的預覽內容
+                    const clone = printRef.current.cloneNode(true);
+                    
+                    // 3. 強制重設複製內容的樣式以適應 A4 容器
+                    // 移除任何可能的 scale，強制填滿
+                    clone.style.width = '100%';
+                    clone.style.height = '100%';
+                    clone.style.transform = 'none'; 
+                    clone.style.margin = '0';
+                    clone.style.padding = '0';
+                    tempContainer.appendChild(clone);
+
+                    // 4. 等待一下確保 DOM 渲染完成 (雖非同步但有時需要)
+                    // await new Promise(resolve => setTimeout(resolve, 100));
+
+                    // 5. 使用 html2canvas 截取該臨時容器
+                    const canvas = await html2canvas(clone, {
+                        scale: 3, // 高解析度
                         useCORS: true,
                         logging: false,
-                        backgroundColor: '#ffffff'
+                        backgroundColor: '#ffffff',
+                        width: 794,
+                        height: 1123,
+                        scrollX: 0,
+                        scrollY: 0,
+                        x: 0,
+                        y: 0
                     });
 
+                    // 6. 清除臨時容器
+                    document.body.removeChild(tempContainer);
+
+                    // 7. 產生 PDF
                     const imgData = canvas.toDataURL('image/png');
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -409,7 +451,7 @@
                     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
                     if (action === 'download') {
-                        pdf.save(`${activeLabel.projectName}-標籤列印.pdf`);
+                        pdf.save(`${activeLabel.projectName || '卷宗標籤'}-標籤列印.pdf`);
                     } else if (action === 'drive') {
                         await uploadToGoogleDrive(pdf);
                     }
@@ -423,12 +465,15 @@
             };
 
             const uploadToGoogleDrive = async (pdfDoc) => {
-                alert(`
-                【Google Drive 同步模擬】
-                系統已準備好將檔案上傳。
-                由於安全限制，請在下載 PDF 後手動拖入您的 Google 共用雲端硬碟。
-                `);
-                pdfDoc.save(`${activeLabel.projectName}-Drive備份.pdf`);
+                const fileName = `${activeLabel.projectName || '卷宗標籤'}-Drive備份.pdf`;
+                pdfDoc.save(fileName);
+                
+                // 稍微延遲後開啟 Google Drive，讓使用者有時間看到下載開始
+                setTimeout(() => {
+                    if(confirm(`檔案「${fileName}」已下載。\n\n是否開啟 Google Drive 網頁以便上傳？`)) {
+                        window.open('https://drive.google.com/drive/my-drive', '_blank');
+                    }
+                }, 500);
             };
 
             // 書背渲染組件
@@ -460,9 +505,16 @@
                     {/* 2. 上方：工程名稱 + 案號區塊 */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
                         <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
-                            <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
-                                {data.projectName}
-                            </h3>
+                            {/* 修改：若無工程名稱，顯示灰色提示文字 */}
+                            {data.projectName ? (
+                                <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
+                                    {data.projectName}
+                                </h3>
+                            ) : (
+                                <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center text-slate-300" style={{ fontSize: `${data.projectNameFontSize}px` }}>
+                                    (請輸入工程名稱)
+                                </h3>
+                            )}
                         </div>
                         
                         {/* 案號與橫線 */}
@@ -570,7 +622,7 @@
                                 <IconFileText />
                                 工程卷宗大師
                             </h1>
-                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.10 (名稱優化版)</p>
+                            <p className="text-sm text-slate-500 mt-1">自動化書背產生器 V2.10 (雲林專用版)</p>
                         </div>
 
                         {/* 標籤切換分頁 */}
@@ -612,22 +664,25 @@
 
                         <div className="space-y-6 pb-20">
                             
-                            {/* 主辦單位 */}
+                            {/* 主辦單位 - 下拉選單 */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">主辦單位名稱 (可換行)</label>
-                                <textarea
+                                <label className="text-sm font-semibold text-slate-700">主辦單位名稱</label>
+                                <select
                                     name="hostName"
                                     value={activeLabel.hostName}
                                     onChange={handleInputChange}
-                                    rows="2"
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                                />
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                >
+                                    {YUNLIN_HOSTS.map((host, idx) => (
+                                        <option key={idx} value={host}>{host}</option>
+                                    ))}
+                                </select>
                             </div>
 
-                            {/* 工程名稱 */}
+                            {/* 工程名稱 - 輸入提示 */}
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <label className="text-sm font-semibold text-slate-700">工程名稱 (可換行)</label>
+                                    <label className="text-sm font-semibold text-slate-700">工程名稱</label>
                                     {history.length > 0 && (
                                         <button onClick={clearHistory} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
                                             <IconTrash2 size={12} /> 清除紀錄
@@ -639,8 +694,8 @@
                                     value={activeLabel.projectName}
                                     onChange={handleInputChange}
                                     rows="3"
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                                    placeholder="輸入工程名稱..."
+                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder-slate-400"
+                                    placeholder="請輸入工程名稱..."
                                 />
                                 {history.length > 0 && (
                                     <div className="mt-1">
@@ -769,14 +824,15 @@
                                 />
                             </div>
 
+                            {/* 單位名稱 - 固定 */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">單位名稱</label>
+                                <label className="text-sm font-semibold text-slate-700">單位名稱 (固定)</label>
                                 <textarea
                                     name="unitName"
                                     value={activeLabel.unitName}
-                                    onChange={handleInputChange}
+                                    readOnly
                                     rows="1"
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                    className="w-full p-3 border border-slate-200 bg-slate-100 text-slate-500 rounded-lg focus:outline-none resize-none cursor-not-allowed"
                                 />
                             </div>
 
@@ -923,6 +979,14 @@
                                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 transition font-bold text-lg disabled:opacity-50"
                             >
                                 {isSaving ? '處理中...' : <><IconPrinter /> 下載 PDF</>}
+                            </button>
+                            
+                            <button 
+                                onClick={() => generatePDF('drive')}
+                                disabled={isSaving || !libsLoaded}
+                                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 transition font-bold text-lg disabled:opacity-50"
+                            >
+                                {isSaving ? '處理中...' : <><IconCloud /> 存檔至雲端</>}
                             </button>
                         </div>
 
