@@ -24,8 +24,8 @@
         .writing-vertical-lr {
             writing-mode: vertical-lr;
             text-orientation: upright;
-            letter-spacing: 0.1em;
-            font-feature-settings: "vrt2" 0; /* 修正部分瀏覽器直書偏移 */
+            letter-spacing: 0.2em; /* 加大字距以符合 PDF 樣式 */
+            font-feature-settings: "vrt2" 0; 
         }
         /* 隱藏列印時不必要的元素 */
         @media print {
@@ -159,13 +159,13 @@
 
         // --- 預設值設定 (DEFAULT_DATA) ---
         const DEFAULT_DATA = {
-            hostName: '雲林縣政府', // 預設為雲林縣政府
-            projectName: '', // 預設空白，顯示灰字提示
-            caseNumber: '案號：112-001',
-            folderNumber: 'P-S-01001', 
-            unitName: '睿泰工程顧問有限公司', // 固定單位
-            category: 'P-計畫書', 
-            fileName: 'S-監造計畫', 
+            hostName: '雲林縣政府', 
+            projectName: '', 
+            caseNumber: '1141A10089', // 更新範例
+            folderNumber: 'P-S-01', 
+            unitName: '睿泰工程顧問\n有限公司', // 修正：預設換行
+            category: 'P-計畫書', // 修正：預設為總分類名稱 (回退)
+            fileName: 'S-監造計畫', // 名稱預設：去頭 (S-開頭，符合用戶希望顯示的樣子)
             version: '', 
             spineWidth: 45, 
             spineHeight: 185, 
@@ -176,10 +176,10 @@
             
             // --- 字體大小 (px) ---
             hostNameFontSize: 22,
-            projectNameFontSize: 22,
+            projectNameFontSize: 20, 
             caseNumberFontSize: 14,
-            categoryFontSize: 24,
-            fileNameFontSize: 20,
+            categoryFontSize: 24, // 修正：回退為較小字體以適應長文字
+            fileNameFontSize: 24, 
             versionFontSize: 14, 
             folderNumberFontSize: 18,
             unitNameFontSize: 16,
@@ -192,9 +192,9 @@
         const App = () => {
             const [labels, setLabels] = useState([
                 { ...DEFAULT_DATA, id: 0 },
-                { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-01002' },
-                { ...DEFAULT_DATA, id: 2, folderNumber: 'P-S-01003' },
-                { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-01004' }
+                { ...DEFAULT_DATA, id: 1, folderNumber: 'P-S-02' },
+                { ...DEFAULT_DATA, id: 2, folderNumber: 'P-S-03' },
+                { ...DEFAULT_DATA, id: 3, folderNumber: 'P-S-04' }
             ]);
             
             const [activeTab, setActiveTab] = useState(0); 
@@ -256,7 +256,7 @@
                 return match ? match[0] : str;
             };
 
-            // 處理分類變更 (核心邏輯修改)
+            // 處理分類變更 (核心邏輯修改 - 回退為顯示總分類名稱)
             const handleCategoryChange = (mainCat, subCat) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
@@ -270,15 +270,18 @@
                     const subObj = subCat ? CATEGORY_DATA[mainCat].subs.find(s => s.name === subCat) : null;
                     const subCode = subObj ? subObj.code : '';
                     
-                    // 1. 設定分類顯示名稱 (大字)
+                    // 1. 中間大字 (Category)：改回顯示「總分類名稱」
                     lbl.category = mainCat;
                     
-                    // 2. 設定卷宗名稱/副標題 (小字)
+                    // 2. 卷宗名稱 (FileName)：自動去頭 (如 S-監造計畫 -> 監造計畫)
                     let displayFileName = subCat || "";
-                    
+                    // 移除開頭的主分類代碼 (P)
                     if (displayFileName.startsWith(mainCode)) {
                          displayFileName = displayFileName.substring(mainCode.length);
                     }
+                    
+                    // 移除開頭的特殊符號
+                    displayFileName = displayFileName.replace(/^[-_]/, '');
 
                     if (subCat === mainCat) {
                         displayFileName = "";
@@ -286,9 +289,8 @@
                     
                     lbl.fileName = displayFileName;
 
-                    // 3. 設定卷宗編號
+                    // 3. 設定卷宗編號：P-S-01
                     const cleanSubCode = subCode.replace(/[-_]/g, '');
-                    
                     let categoryPart = "";
                     
                     if (cleanSubCode && cleanSubCode !== mainCode) {
@@ -297,7 +299,7 @@
                         categoryPart = `${mainCode}`;
                     }
                     
-                    let serial = "01001";
+                    let serial = "01001"; 
                     
                     lbl.folderNumber = `${categoryPart}-${serial}`;
                 }
@@ -382,7 +384,7 @@
                 localStorage.removeItem('projectHistory');
             };
 
-            // 修正後的 PDF 生成函式：使用獨立的 A4 容器確保不跑位
+            // PDF 產生邏輯 (強化版：使用 mm 單位與臨時容器)
             const generatePDF = async (action = 'download') => {
                 if (!printRef.current || !libsLoaded) {
                     if (!libsLoaded) alert("系統正在載入 PDF 核心元件，請稍後再試...");
@@ -395,60 +397,54 @@
                     const html2canvas = window.html2canvas;
                     const { jsPDF } = window.jspdf;
 
-                    // 1. 建立一個不可見但存在於 DOM 的 A4 容器
-                    // 這裡寬度設為 794px (約 210mm @ 96dpi), 高度 1123px (約 297mm)
-                    // 使用 fixed 定位移出視窗外，避免影響當前畫面
+                    // 使用隱藏的臨時容器來確保版面不跑位
                     const tempContainer = document.createElement('div');
                     tempContainer.style.position = 'fixed'; 
                     tempContainer.style.top = '0';
                     tempContainer.style.left = '0';
-                    tempContainer.style.width = '794px'; // 210mm
-                    tempContainer.style.height = '1123px'; // 297mm
+                    tempContainer.style.width = '210mm'; // 使用 mm 單位
+                    tempContainer.style.height = '297mm'; // 使用 mm 單位
                     tempContainer.style.zIndex = '-9999';
                     tempContainer.style.backgroundColor = '#ffffff';
                     tempContainer.style.margin = '0';
                     tempContainer.style.padding = '0';
                     document.body.appendChild(tempContainer);
 
-                    // 2. 複製目前的預覽內容
                     const clone = printRef.current.cloneNode(true);
                     
-                    // 3. 強制重設複製內容的樣式以適應 A4 容器
-                    // 移除任何可能的 scale，強制填滿
                     clone.style.width = '100%';
                     clone.style.height = '100%';
                     clone.style.transform = 'none'; 
                     clone.style.margin = '0';
                     clone.style.padding = '0';
+                    // 強制設定文字渲染與背景，避免透明或字型偏移
+                    clone.style.fontFeatureSettings = '"vrt2" 0';
                     tempContainer.appendChild(clone);
 
-                    // 4. 等待一下確保 DOM 渲染完成 (雖非同步但有時需要)
-                    // await new Promise(resolve => setTimeout(resolve, 100));
+                    // 等待字型載入與渲染
+                    await document.fonts.ready;
 
-                    // 5. 使用 html2canvas 截取該臨時容器
                     const canvas = await html2canvas(clone, {
-                        scale: 3, // 高解析度
+                        scale: 4, // 提高解析度到 4 (約 384 DPI) 以確保清晰且位置準確
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff',
-                        width: 794,
-                        height: 1123,
+                        width: tempContainer.offsetWidth, // 使用實際渲染像素寬度
+                        height: tempContainer.offsetHeight, // 使用實際渲染像素高度
                         scrollX: 0,
                         scrollY: 0,
                         x: 0,
                         y: 0
                     });
 
-                    // 6. 清除臨時容器
                     document.body.removeChild(tempContainer);
 
-                    // 7. 產生 PDF
-                    const imgData = canvas.toDataURL('image/png');
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0); // 使用 JPEG 高品質減少檔案大小並提高相容性
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
                     
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
                     if (action === 'download') {
                         pdf.save(`${activeLabel.projectName || '卷宗標籤'}-標籤列印.pdf`);
@@ -468,7 +464,6 @@
                 const fileName = `${activeLabel.projectName || '卷宗標籤'}-Drive備份.pdf`;
                 pdfDoc.save(fileName);
                 
-                // 稍微延遲後開啟 Google Drive，讓使用者有時間看到下載開始
                 setTimeout(() => {
                     if(confirm(`檔案「${fileName}」已下載。\n\n是否開啟 Google Drive 網頁以便上傳？`)) {
                         window.open('https://drive.google.com/drive/my-drive', '_blank');
@@ -505,7 +500,6 @@
                     {/* 2. 上方：工程名稱 + 案號區塊 */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
                         <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
-                            {/* 修改：若無工程名稱，顯示灰色提示文字 */}
                             {data.projectName ? (
                                 <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
                                     {data.projectName}
@@ -695,7 +689,7 @@
                                     onChange={handleInputChange}
                                     rows="3"
                                     className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder-slate-400"
-                                    placeholder="請輸入工程名稱..."
+                                    placeholder="請輸入工程名稱 (範例: 台西鄉&#10;有才寮大排旁&#10;堤岸復建工程)"
                                 />
                                 {history.length > 0 && (
                                     <div className="mt-1">
