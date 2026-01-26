@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程卷宗大師 - 自動化書背產生系統 V2.10 (雲林專用版)</title>
+    <title>工程卷宗大師 - 自動化書背產生系統 V2.10 (防壓線優化版)</title>
     
     <!-- 載入 React 核心 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -164,8 +164,8 @@
             caseNumber: '1141A10089', // 更新範例
             folderNumber: 'P-S-01', 
             unitName: '睿泰工程顧問\n有限公司', // 修正：預設換行
-            category: 'P-計畫書', // 修正：預設為總分類名稱 (回退)
-            fileName: 'S-監造計畫', // 名稱預設：去頭 (S-開頭，符合用戶希望顯示的樣子)
+            category: 'P-計畫書', // 修正：預設為總分類名稱
+            fileName: 'S-監造計畫', // 名稱預設：去頭
             version: '', 
             spineWidth: 45, 
             spineHeight: 185, 
@@ -256,7 +256,7 @@
                 return match ? match[0] : str;
             };
 
-            // 處理分類變更 (核心邏輯修改 - 回退為顯示總分類名稱)
+            // 處理分類變更
             const handleCategoryChange = (mainCat, subCat) => {
                 const newLabels = [...labels];
                 const lbl = newLabels[activeTab];
@@ -482,8 +482,8 @@
                         boxSizing: 'border-box'
                     }}
                 >
-                    {/* 1. 最上方：主辦單位 + Logo */}
-                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-1 mb-1 min-h-[15%]">
+                    {/* 1. 最上方：主辦單位 + Logo (增加 pb-2 防壓線) */}
+                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-2 mb-1 min-h-[15%]">
                         {data.hostIcon && (
                             <img 
                                 src={data.hostIcon} 
@@ -497,7 +497,7 @@
                         </h3>
                     </div>
 
-                    {/* 2. 上方：工程名稱 + 案號區塊 */}
+                    {/* 2. 上方：工程名稱 + 案號區塊 (增加 py-2 防壓線) */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
                         <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
                             {data.projectName ? (
@@ -515,7 +515,7 @@
                         {data.caseNumber && (
                             <>
                                 <div className="w-full border-t-2 border-black"></div>
-                                <div className="w-full py-1 text-center">
+                                <div className="w-full py-2 text-center">
                                     <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap" style={{ fontSize: `${data.caseNumberFontSize}px` }}>
                                             {data.caseNumber}
                                     </h3>
@@ -543,8 +543,8 @@
                             </div>
                         </div>
 
-                        {/* 編號區 (上方增加橫線) */}
-                        <div className="w-full border-t-2 border-black pt-1 mt-1 text-center flex flex-col items-center">
+                        {/* 編號區 (上方增加橫線，增加 pt-2 防壓線) */}
+                        <div className="w-full border-t-2 border-black pt-2 mt-1 text-center flex flex-col items-center">
                             {/* 新增：版次顯示 (若有輸入才顯示) */}
                             {data.version && (
                                 <div className="font-bold mb-1" style={{ fontSize: `${data.versionFontSize}px` }}>
@@ -557,8 +557,8 @@
                         </div>
                     </div>
 
-                    {/* 4. 下方：單位資訊 */}
-                    <div className="w-full flex flex-col justify-start items-center border-t-2 border-black pt-1 mt-1 min-h-[15%]">
+                    {/* 4. 下方：單位資訊 (增加 pt-2 防壓線) */}
+                    <div className="w-full flex flex-col justify-start items-center border-t-2 border-black pt-2 mt-1 min-h-[15%]">
                         <h4 className="font-bold mb-1 whitespace-pre-wrap" style={{ fontSize: `${data.unitNameFontSize}px` }}>{data.unitName}</h4>
                         {data.unitIcon && (
                             <img 
@@ -689,7 +689,7 @@
                                     onChange={handleInputChange}
                                     rows="3"
                                     className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder-slate-400"
-                                    placeholder="請輸入工程名稱 (範例: 台西鄉&#10;有才寮大排旁&#10;堤岸復建工程)"
+                                    placeholder="請輸入工程名稱..."
                                 />
                                 {history.length > 0 && (
                                     <div className="mt-1">
