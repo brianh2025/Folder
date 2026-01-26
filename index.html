@@ -483,7 +483,7 @@
                     }}
                 >
                     {/* 1. 最上方：主辦單位 + Logo (增加 pb-2 防壓線) */}
-                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-2 mb-1 min-h-[15%]">
+                    <div className="w-full flex flex-col justify-end items-center border-b-2 border-black pb-3 mb-1 min-h-[15%]">
                         {data.hostIcon && (
                             <img 
                                 src={data.hostIcon} 
@@ -499,7 +499,7 @@
 
                     {/* 2. 上方：工程名稱 + 案號區塊 (增加 py-2 防壓線) */}
                     <div className="w-full flex flex-col border-b-2 border-black mb-1 min-h-[18%]">
-                        <div className="w-full flex-grow flex items-center justify-center py-2 px-1">
+                        <div className="w-full flex-grow flex items-center justify-center py-3 px-1">
                             {data.projectName ? (
                                 <h3 className="font-bold w-full break-words leading-tight whitespace-pre-wrap text-center" style={{ fontSize: `${data.projectNameFontSize}px` }}>
                                     {data.projectName}
